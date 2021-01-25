@@ -28,6 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "concurrent-ruby"
   spec.add_dependency "nokogiri", "~> 1.10.4"
   spec.add_dependency "asciidoctor", "~> 2.0.0"
+  spec.add_dependency "uuidtools"
 
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "equivalent-xml", "~> 0.6"

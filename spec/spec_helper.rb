@@ -2,6 +2,8 @@ require "simplecov"
 SimpleCov.start do
   add_filter "/spec/"
 end
+require "rspec/matchers"
+require "equivalent-xml"
 require "metanorma-utils"
 
 RSpec.configure do |config|
@@ -16,5 +18,17 @@ RSpec.configure do |config|
   end
 end
 
+class Dummy
+  attr_accessor :id
+  attr_accessor :docfile
+  def initialize(id = nil)
+    @id = id
+  end
 
+  def attr(x)
+    case x
+    when "docfile" then @docfile
+    end
+  end
+end
 

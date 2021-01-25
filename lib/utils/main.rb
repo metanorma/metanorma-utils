@@ -1,5 +1,6 @@
 require "asciidoctor"
 require "sterile"
+require "uuidtools"
 
 module Metanorma
   module Utils
@@ -28,8 +29,7 @@ module Metanorma
       def asciidoc_sub(x)
         return nil if x.nil?
         return "" if x.empty?
-        d = Asciidoctor::Document.new(x.lines.entries, { header_footer: false,
-                                                         backend: :standoc })
+        d = Asciidoctor::Document.new(x.lines.entries, { header_footer: false, backend: :html })
         b = d.parse.blocks.first
         b.apply_subs(b.source)
       end
@@ -42,7 +42,6 @@ module Metanorma
       # TODO needs internationalisation
       def smartformat(n)
         n.gsub(/ --? /, "&#8201;&#8212;&#8201;").
-          gsub(/\'(\d\d)(?=[^\u2019\'\s<]+[’\'][\p{P}\p{Z}])([\p{P}\p{Z}])/, "\u2018\\1\\2").
           gsub(/--/, "&#8212;").smart_format.gsub(/</, "&lt;").gsub(/>/, "&gt;")
       end
 
@@ -59,24 +58,27 @@ module Metanorma
         if keys.length == 1
           hash[key] = hash[key].is_a?(Array) ?  (hash[key] << new_val) :
             hash[key].nil? ?  new_val : [hash[key], new_val]
-          return hash
-        end
-        if hash[key].is_a?(Array)
-          hash[key][-1] = {} if hash[key][-1].nil?
-          set_nested_value(hash[key][-1], keys[1..-1], new_val)
-        elsif hash[key].nil? || hash[key].empty?
-          hash[key] = {}
-          set_nested_value(hash[key], keys[1..-1], new_val)
-        elsif hash[key].is_a?(Hash) && !hash[key][keys[1]]
-          set_nested_value(hash[key], keys[1..-1], new_val)
-        elsif !hash[key][keys[1]]
-          hash[key] = [hash[key], {}]
-          set_nested_value(hash[key][-1], keys[1..-1], new_val)
         else
-          set_nested_value(hash[key], keys[1..-1], new_val)
+          if hash[key].is_a?(Array)
+            hash[key] << {} if hash[key].empty? || !hash[key][-1].is_a?(Hash)
+            hash[key][-1] = {} if hash[key][-1].nil?
+            set_nested_value(hash[key][-1], keys[1..-1], new_val)
+          elsif hash[key].nil? || hash[key].empty?
+            hash[key] = {}
+            set_nested_value(hash[key], keys[1..-1], new_val)
+          elsif hash[key].is_a?(Hash) && !hash[key][keys[1]]
+            set_nested_value(hash[key], keys[1..-1], new_val)
+          elsif !hash[key][keys[1]]
+            hash[key] = [hash[key], {}]
+            set_nested_value(hash[key][-1], keys[1..-1], new_val)
+          else
+            set_nested_value(hash[key], keys[1..-1], new_val)
+          end
         end
+        hash
       end
 
+      # not currently used
       def flatten_rawtext_lines(node, result)
         node.lines.each do |x|
           if node.respond_to?(:context) && (node.context == :literal ||
@@ -90,6 +92,7 @@ module Metanorma
         result
       end
 
+      # not currently used
       # if node contains blocks, flatten them into a single line;
       # and extract only raw text
       def flatten_rawtext(node)
@@ -104,11 +107,6 @@ module Metanorma
           result << node.content.gsub(/<[^>]*>+/, "")
         end
         result.reject(&:empty?)
-      end
-
-      def reqt_subpart(x)
-        %w(specification measurement-target verification import label
-             subject inherit classification title).include? x
       end
     end
   end
