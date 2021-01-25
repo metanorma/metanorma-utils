@@ -60,8 +60,8 @@ module Metanorma
             hash[key].nil? ?  new_val : [hash[key], new_val]
         else
           if hash[key].is_a?(Array)
+            hash[key][-1] = {} if !hash[key].empty? && hash[key][-1].nil?
             hash[key] << {} if hash[key].empty? || !hash[key][-1].is_a?(Hash)
-            hash[key][-1] = {} if hash[key][-1].nil?
             set_nested_value(hash[key][-1], keys[1..-1], new_val)
           elsif hash[key].nil? || hash[key].empty?
             hash[key] = {}
