@@ -78,6 +78,38 @@ module Metanorma
         hash
       end
 
+      def svgmap_rewrite(xmldoc)
+        xmldoc.xpath("//svgmap").each do |s|
+          next unless s["src"]
+          path = File.file?(s["src"]) ? s["src"] : @localdir + s["src"]
+          File.file?(path) or next
+          svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
+          svgmap_rewrite1(s, svg, path)
+          next if s.at(".//eref")
+          svgmap_to_image(s, svg&.at(".//xmlns:image/@height")&.text, svg&.at(".//xmlns:image/@width")&.text)
+        end
+      end
+
+      def svgmap_to_image(s, height, width)
+        s.children.remove
+        s.name = "img"
+        s["mimetype"] = "image/svg+xml"
+        s["height"] = height || "auto"
+        s["width"] = width || "auto"
+      end
+
+      def svgmap_rewrite1(s, svg, path)
+        targets = s.xpath("./target").each_with_object({}) do |t, m|
+          x = t.at("./xref") and m[t["href"]] = "##{x['target']}"
+          x = t.at("./link") and m[t["href"]] = x['target']
+          t.remove if t.at("./xref | ./link")
+        end
+        svg.xpath(".//xmlns:a").each do |a|
+          x = targets[a["xlink:href"]] and a["xlink:href"] = x
+        end
+        File.open(path, "w", encoding: "utf-8") { |f| f.write(svg.to_xml) }
+      end
+
       # not currently used
       def flatten_rawtext_lines(node, result)
         node.lines.each do |x|

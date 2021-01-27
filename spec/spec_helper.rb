@@ -5,6 +5,7 @@ end
 require "rspec/matchers"
 require "equivalent-xml"
 require "metanorma-utils"
+require "rexml/document"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -32,3 +33,10 @@ class Dummy
   end
 end
 
+def xmlpp(x)
+  s = ""
+  f = REXML::Formatters::Pretty.new(2)
+  f.compact = true
+  f.write(REXML::Document.new(x), s)
+  s
+end

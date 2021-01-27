@@ -72,6 +72,92 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
+  it "rewrites SVGs" do
+    FileUtils.cp "spec/fixtures/action_schemaexpg1.svg", "action_schemaexpg1.svg"
+   FileUtils.cp "spec/fixtures/action_schemaexpg1.svg", "action_schemaexpg2.svg"
+   xmldoc = Nokogiri::XML(<<~INPUT)
+   <standard-document type="semantic" version="1.8.2">
+<bibdata type="standard">
+<title language="en" format="text/plain">Document title</title>
+<docidentifier/>
+<docnumber/>
+<version/>
+<language>en</language>
+<script>Latn</script>
+<status>
+<stage>published</stage>
+</status>
+<copyright>
+<from>2021</from>
+</copyright>
+<ext>
+<doctype>article</doctype>
+</ext>
+</bibdata>
+<sections><svgmap id="_d5b5049a-dd53-4ea0-bc6f-e8773bd59052"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target></svgmap>
+<svgmap id="_4072bdcb-5895-4821-b636-5795b96787cb" src="action_schemaexpg1.svg"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target><target href="http://www.example.com"><link target="http://www.example.com">Phone</link></target></svgmap>
+<svgmap id="_60dadf08-48d4-4164-845c-b4e293e00abd" src="action_schemaexpg2.svg" alt="Workmap"><target href="href1.htm"><xref target="ref1">Computer</xref></target><target href="mn://basic_attribute_schema"><link target="http://www.example.com">Phone</link></target><target href="mn://support_resource_schema"><eref type="express" bibitemid="express_action_schema" citeas=""><localityStack><locality type="anchor"><referenceFrom>action_schema.basic</referenceFrom></locality></localityStack>Coffee</eref></target></svgmap></sections>
+</standard-document>
+   INPUT
+   Metanorma::Utils.svgmap_rewrite(xmldoc)
+   expect(xmldoc.to_xml).to be_equivalent_to <<~OUTPUT
+   <standard-document type="semantic" version="1.8.2">
+       <bibdata type="standard">
+       <title language="en" format="text/plain">Document title</title>
+       <docidentifier/>
+       <docnumber/>
+       <version/>
+       <language>en</language>
+       <script>Latn</script>
+       <status>
+       <stage>published</stage>
+       </status>
+       <copyright>
+       <from>2021</from>
+       </copyright>
+       <ext>
+       <doctype>article</doctype>
+       </ext>
+       </bibdata>
+       <sections><svgmap id="_d5b5049a-dd53-4ea0-bc6f-e8773bd59052"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target></svgmap>
+       <img id="_4072bdcb-5895-4821-b636-5795b96787cb" src="action_schemaexpg1.svg" mimetype="image/svg+xml" height="315" width="368"/>
+       <svgmap id="_60dadf08-48d4-4164-845c-b4e293e00abd" src="action_schemaexpg2.svg" alt="Workmap"><target href="mn://support_resource_schema"><eref type="express" bibitemid="express_action_schema" citeas=""><localityStack><locality type="anchor"><referenceFrom>action_schema.basic</referenceFrom></locality></localityStack>Coffee</eref></target></svgmap></sections>
+       </standard-document>
+   OUTPUT
+   expect(xmlpp(File.read("action_schemaexpg1.svg", encoding: "utf-8").sub(%r{<image .*</image>}m, ""))).to be_equivalent_to <<~OUTPUT
+<?xml version='1.0' encoding='UTF-8'?>
+       <!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+       <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+         <style type='text/css'> .st0{fill:none;stroke:#000000;stroke-miterlimit:10;} </style>
+         <a xlink:href='#ref1'>
+           <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
+         </a>
+         <a xlink:href='mn://basic_attribute_schema'>
+           <rect x='324.69' y='450.52' class='st0' width='132.62' height='40.75'/>
+         </a>
+         <a xlink:href='mn://support_resource_schema'>
+           <rect x='324.69' y='528.36' class='st0' width='148.16' height='40.75'/>
+         </a>
+       </svg>
+OUTPUT
+expect(xmlpp(File.read("action_schemaexpg2.svg", encoding: "utf-8").sub(%r{<image .*</image>}m, ""))).to be_equivalent_to <<~OUTPUT
+<?xml version='1.0' encoding='UTF-8'?>
+       <!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+       <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+         <style type='text/css'> .st0{fill:none;stroke:#000000;stroke-miterlimit:10;} </style>
+         <a xlink:href='mn://action_schema'>
+           <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
+         </a>
+         <a xlink:href='http://www.example.com'>
+           <rect x='324.69' y='450.52' class='st0' width='132.62' height='40.75'/>
+         </a>
+         <a xlink:href='mn://support_resource_schema'>
+           <rect x='324.69' y='528.36' class='st0' width='148.16' height='40.75'/>
+         </a>
+       </svg>
+OUTPUT
+  end
+
   # not testing Asciidoctor log extraction here
   it "generates log" do
     xml = Nokogiri::XML(<<~INPUT)
