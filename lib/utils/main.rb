@@ -80,7 +80,7 @@ module Metanorma
 
       def svgmap_rewrite(xmldoc, localdir = "")
         xmldoc.xpath("//svgmap").each do |s|
-          next unless src = s.at("./figure/image/@src")
+          next unless src = s.at(".//image/@src")
           path = File.file?(src) ? src : localdir + src
           File.file?(path) or next
           svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
