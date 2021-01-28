@@ -94,13 +94,19 @@ RSpec.describe Metanorma::Utils do
 <doctype>article</doctype>
 </ext>
 </bibdata>
-<sections><svgmap id="_d5b5049a-dd53-4ea0-bc6f-e8773bd59052"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target></svgmap>
-<svgmap id="_4072bdcb-5895-4821-b636-5795b96787cb" src="action_schemaexpg1.svg"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target><target href="http://www.example.com"><link target="http://www.example.com">Phone</link></target></svgmap>
-<svgmap id="_60dadf08-48d4-4164-845c-b4e293e00abd" src="action_schemaexpg2.svg" alt="Workmap"><target href="href1.htm"><xref target="ref1">Computer</xref></target><target href="mn://basic_attribute_schema"><link target="http://www.example.com">Phone</link></target><target href="mn://support_resource_schema"><eref type="express" bibitemid="express_action_schema" citeas=""><localityStack><locality type="anchor"><referenceFrom>action_schema.basic</referenceFrom></locality></localityStack>Coffee</eref></target></svgmap></sections>
+<sections>
+<svgmap id="_d5b5049a-dd53-4ea0-bc6f-e8773bd59052"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target></svgmap>
+<svgmap id="_4072bdcb-5895-4821-b636-5795b96787cb">
+<figure><image  src="action_schemaexpg1.svg"/></figure>
+<target href="mn://action_schema"><xref target="ref1">Computer</xref></target><target href="http://www.example.com"><link target="http://www.example.com">Phone</link></target>
+</svgmap>
+<svgmap id="_60dadf08-48d4-4164-845c-b4e293e00abd">
+<figure><image  src="action_schemaexpg2.svg" alt="Workmap"/></figure>
+<target href="href1.htm"><xref target="ref1">Computer</xref></target><target href="mn://basic_attribute_schema"><link target="http://www.example.com">Phone</link></target><target href="mn://support_resource_schema"><eref type="express" bibitemid="express_action_schema" citeas=""><localityStack><locality type="anchor"><referenceFrom>action_schema.basic</referenceFrom></locality></localityStack>Coffee</eref></target></svgmap></sections>
 </standard-document>
    INPUT
    Metanorma::Utils.svgmap_rewrite(xmldoc)
-   expect(xmldoc.to_xml).to be_equivalent_to <<~OUTPUT
+   expect(xmlpp(xmldoc.to_xml)).to be_equivalent_to xmlpp(<<~OUTPUT)
    <standard-document type="semantic" version="1.8.2">
        <bibdata type="standard">
        <title language="en" format="text/plain">Document title</title>
@@ -120,8 +126,14 @@ RSpec.describe Metanorma::Utils do
        </ext>
        </bibdata>
        <sections><svgmap id="_d5b5049a-dd53-4ea0-bc6f-e8773bd59052"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target></svgmap>
-       <img id="_4072bdcb-5895-4821-b636-5795b96787cb" src="action_schemaexpg1.svg" mimetype="image/svg+xml" height="315" width="368"/>
-       <svgmap id="_60dadf08-48d4-4164-845c-b4e293e00abd" src="action_schemaexpg2.svg" alt="Workmap"><target href="mn://support_resource_schema"><eref type="express" bibitemid="express_action_schema" citeas=""><localityStack><locality type="anchor"><referenceFrom>action_schema.basic</referenceFrom></locality></localityStack>Coffee</eref></target></svgmap></sections>
+       <figure>
+  <image src='action_schemaexpg1.svg'/>
+</figure>
+<svgmap id='_60dadf08-48d4-4164-845c-b4e293e00abd'>
+  <figure>
+    <image src='action_schemaexpg2.svg' alt='Workmap'/>
+  </figure>
+<target href="mn://support_resource_schema"><eref type="express" bibitemid="express_action_schema" citeas=""><localityStack><locality type="anchor"><referenceFrom>action_schema.basic</referenceFrom></locality></localityStack>Coffee</eref></target></svgmap></sections>
        </standard-document>
    OUTPUT
    expect(xmlpp(File.read("action_schemaexpg1.svg", encoding: "utf-8").sub(%r{<image .*</image>}m, ""))).to be_equivalent_to <<~OUTPUT

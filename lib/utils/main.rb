@@ -78,24 +78,16 @@ module Metanorma
         hash
       end
 
-      def svgmap_rewrite(xmldoc)
+      def svgmap_rewrite(xmldoc, localdir = "")
         xmldoc.xpath("//svgmap").each do |s|
-          next unless s["src"]
-          path = File.file?(s["src"]) ? s["src"] : @localdir + s["src"]
+          next unless src = s.at("./figure/image/@src")
+          path = File.file?(src) ? src : localdir + src
           File.file?(path) or next
           svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
           svgmap_rewrite1(s, svg, path)
-          next if s.at(".//eref")
-          svgmap_to_image(s, svg&.at(".//xmlns:image/@height")&.text, svg&.at(".//xmlns:image/@width")&.text)
+          next if s.at("./target/eref")
+          s.replace(s.at("./figure"))
         end
-      end
-
-      def svgmap_to_image(s, height, width)
-        s.children.remove
-        s.name = "img"
-        s["mimetype"] = "image/svg+xml"
-        s["height"] = height || "auto"
-        s["width"] = width || "auto"
       end
 
       def svgmap_rewrite1(s, svg, path)
