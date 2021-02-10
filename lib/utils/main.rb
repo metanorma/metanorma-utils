@@ -82,23 +82,50 @@ module Metanorma
         hash
       end
 
-      def svgmap_rewrite(xmldoc, localdir = "")
-        xmldoc.xpath("//svgmap").each do |s|
-          next unless src = s.at(".//image/@src")
-          path = File.file?(src) ? src : localdir + src
-          File.file?(path) or next
-          svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
-          svgmap_rewrite1(s, svg, path)
-          next if s.at("./target/eref")
-          s.replace(s.at("./figure"))
+      class Namespace
+        def initialize(xmldoc)
+          @namespace = xmldoc.root.namespace
+        end
+
+        def ns(path)
+          return path if @namespace.nil?
+          path.gsub(%r{/([a-zA-z])}, "/xmlns:\\1").
+            gsub(%r{::([a-zA-z])}, "::xmlns:\\1").
+            gsub(%r{\[([a-zA-z][a-z0-9A-Z@/]* ?=)}, "[xmlns:\\1").
+            gsub(%r{\[([a-zA-z][a-z0-9A-Z@/]*\])}, "[xmlns:\\1")
         end
       end
 
-      def svgmap_rewrite1(s, svg, path)
-        targets = s.xpath("./target").each_with_object({}) do |t, m|
-          x = t.at("./xref") and m[t["href"]] = "##{x['target']}"
-          x = t.at("./link") and m[t["href"]] = x['target']
-          t.remove if t.at("./xref | ./link")
+      def save_dataimage(uri)
+      %r{^data:(image|application)/(?<imgtype>[^;]+);base64,(?<imgdata>.+)$} =~ uri
+      imgtype.sub!(/\+[a-z0-9]+$/, '') # svg+xml
+      imgtype = 'png' unless /^[a-z0-9]+$/.match imgtype
+      Tempfile.open(['image', ".#{imgtype}"]) do |f|
+        f.binmode
+        f.write(Base64.strict_decode64(imgdata))
+        f.path
+      end
+    end
+
+      def svgmap_rewrite(xmldoc, localdir = "")
+        n = Namespace.new(xmldoc)
+        xmldoc.xpath(n.ns("//svgmap")).each do |s|
+          next unless i = s.at(n.ns(".//image")) and src = i["src"]
+          path = /^data:/.match(src) ? save_dataimage(src) : File.file?(src) ? src : localdir + src
+          File.file?(path) or next
+          svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
+          svgmap_rewrite1(s, svg, path, n)
+          /^data:/.match(src) and i["src"] = datauri(path)
+          next if s.at(n.ns("./target/eref"))
+          s.replace(s.at(n.ns("./figure")))
+        end
+      end
+
+      def svgmap_rewrite1(s, svg, path, n)
+        targets = s.xpath(n.ns("./target")).each_with_object({}) do |t, m|
+          x = t.at(n.ns("./xref")) and m[t["href"]] = "##{x['target']}"
+          x = t.at(n.ns("./link")) and m[t["href"]] = x['target']
+          t.remove if t.at(n.ns("./xref | ./link"))
         end
         svg.xpath(".//xmlns:a").each do |a|
           x = targets[a["xlink:href"]] and a["xlink:href"] = x
@@ -141,7 +168,7 @@ module Metanorma
       #   sources/sources/plantuml/plantuml20200524-90467-1iqek5i.png)
       def datauri(uri, localdir = ".")
         return uri if /^data:/.match(uri)
-        path = File.join(localdir, uri)
+        path = %r{^([A-Z]:)?/}.match?(uri) ? uri : File.join(localdir, uri)
         types = MIME::Types.type_for(path)
         type = types ? types.first.to_s : 'text/plain; charset="utf-8"'
         bin = File.open(path, 'rb', &:read)
