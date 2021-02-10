@@ -1,4 +1,5 @@
 require "asciidoctor"
+require "tempfile"
 require "sterile"
 require "uuidtools"
 require "mimemagic"
@@ -108,8 +109,7 @@ module Metanorma
       # not currently used
       def flatten_rawtext_lines(node, result)
         node.lines.each do |x|
-          if node.respond_to?(:context) && (node.context == :literal ||
-              node.context == :listing)
+          if node.respond_to?(:context) && (node.context == :literal || node.context == :listing)
             result << x.gsub(/</, "&lt;").gsub(/>/, "&gt;")
           else
             # strip not only HTML <tag>, and Asciidoc xrefs <<xref>>
@@ -147,6 +147,29 @@ module Metanorma
         bin = File.open(path, 'rb', &:read)
         data = Base64.strict_encode64(bin)
         "data:#{type};base64,#{data}"
+      end
+
+      def datauri2mime(uri)
+        %r{^data:image/(?<imgtype>[^;]+);base64,(?<imgdata>.+)$} =~ uri
+        type = nil
+        imgtype = "png" unless /^[a-z0-9]+$/.match imgtype
+        ::Tempfile.open(["imageuri", ".#{imgtype}"]) do |file|
+          type = datauri2mime1(file, imgdata)
+        end
+        [type]
+      end
+
+      def datauri2mime1(file, imgdata)
+        type = nil
+        begin
+          file.binmode
+          file.write(Base64.strict_decode64(imgdata))
+          file.rewind
+          type = MimeMagic.by_magic(file)
+        ensure
+          file.close!
+        end
+        type
       end
     end
   end
