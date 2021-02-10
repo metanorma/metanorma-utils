@@ -1,6 +1,9 @@
 require "asciidoctor"
 require "sterile"
 require "uuidtools"
+require "mimemagic"
+require "mime/types"
+require "base64"
 
 module Metanorma
   module Utils
@@ -131,6 +134,19 @@ module Metanorma
           result << node.content.gsub(/<[^>]*>+/, "")
         end
         result.reject(&:empty?)
+      end
+
+      # FIXME: nested uri path error(
+      #   sources/plantuml/plantuml20200524-90467-1iqek5i.png ->
+      #   sources/sources/plantuml/plantuml20200524-90467-1iqek5i.png)
+      def datauri(uri, localdir = ".")
+        return uri if /^data:/.match(uri)
+        path = File.join(localdir, uri)
+        types = MIME::Types.type_for(path)
+        type = types ? types.first.to_s : 'text/plain; charset="utf-8"'
+        bin = File.open(path, 'rb', &:read)
+        data = Base64.strict_encode64(bin)
+        "data:#{type};base64,#{data}"
       end
     end
   end
