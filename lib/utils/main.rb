@@ -123,12 +123,12 @@ module Metanorma
 
       def svgmap_rewrite1(s, svg, path, n)
         targets = s.xpath(n.ns("./target")).each_with_object({}) do |t, m|
-          x = t.at(n.ns("./xref")) and m[t["href"]] = "##{x['target']}"
-          x = t.at(n.ns("./link")) and m[t["href"]] = x['target']
+          x = t.at(n.ns("./xref")) and m[File.expand_path(t["href"])] = "##{x['target']}"
+          x = t.at(n.ns("./link")) and m[File.expand_path(t["href"])] = x['target']
           t.remove if t.at(n.ns("./xref | ./link"))
         end
         svg.xpath(".//xmlns:a").each do |a|
-          x = targets[a["xlink:href"]] and a["xlink:href"] = x
+          x = targets[File.expand_path(a["xlink:href"])] and a["xlink:href"] = x
         end
         File.open(path, "w", encoding: "utf-8") { |f| f.write(svg.to_xml) }
       end
