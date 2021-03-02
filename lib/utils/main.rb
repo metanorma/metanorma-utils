@@ -97,28 +97,39 @@ module Metanorma
       end
 
       def save_dataimage(uri)
-      %r{^data:(image|application)/(?<imgtype>[^;]+);base64,(?<imgdata>.+)$} =~ uri
-      imgtype.sub!(/\+[a-z0-9]+$/, '') # svg+xml
-      imgtype = 'png' unless /^[a-z0-9]+$/.match imgtype
-      Tempfile.open(['image', ".#{imgtype}"]) do |f|
-        f.binmode
-        f.write(Base64.strict_decode64(imgdata))
-        f.path
+        %r{^data:(image|application)/(?<imgtype>[^;]+);base64,(?<imgdata>.+)$} =~ uri
+        imgtype.sub!(/\+[a-z0-9]+$/, '') # svg+xml
+        imgtype = 'png' unless /^[a-z0-9]+$/.match imgtype
+        Tempfile.open(['image', ".#{imgtype}"]) do |f|
+          f.binmode
+          f.write(Base64.strict_decode64(imgdata))
+          f.path
+        end
       end
-    end
+
+      SVG_NS = "http://www.w3.org/2000/svg".freeze
 
       def svgmap_rewrite(xmldoc, localdir = "")
         n = Namespace.new(xmldoc)
         xmldoc.xpath(n.ns("//svgmap")).each do |s|
-          next unless i = s.at(n.ns(".//image")) and src = i["src"]
-          path = /^data:/.match(src) ? save_dataimage(src) : File.file?(src) ? src : localdir + src
-          File.file?(path) or next
-          svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
-          svgmap_rewrite1(s, svg, path, n)
-          /^data:/.match(src) and i["src"] = datauri(path)
+          next unless svgmap_rewrite0(s, n)
           next if s.at(n.ns("./target/eref"))
           s.replace(s.at(n.ns("./figure")))
         end
+      end
+
+      def svgmap_rewrite0(s, n)
+        if i = s.at(n.ns(".//image")) and src = i["src"]
+          path = /^data:/.match(src) ? save_dataimage(src) : File.file?(src) ? src : localdir + src
+          File.file?(path) or return false
+          svgmap_rewrite1(s, Nokogiri::XML(File.read(path, encoding: "utf-8")), path, n)
+          /^data:/.match(src) and i["src"] = datauri(path)
+        elsif i = s.at(".//m:svg", "m" => SVG_NS)
+          svgmap_rewrite1(s, i, nil, n)
+        else
+          return false
+        end                 
+        true
       end
 
       def svgmap_rewrite1(s, svg, path, n)
@@ -127,10 +138,10 @@ module Metanorma
           x = t.at(n.ns("./link")) and m[File.expand_path(t["href"])] = x['target']
           t.remove if t.at(n.ns("./xref | ./link"))
         end
-        svg.xpath(".//xmlns:a").each do |a|
+        svg.xpath(".//m:a", "m" => SVG_NS).each do |a|
           x = targets[File.expand_path(a["xlink:href"])] and a["xlink:href"] = x
         end
-        File.open(path, "w", encoding: "utf-8") { |f| f.write(svg.to_xml) }
+        path and File.open(path, "w", encoding: "utf-8") { |f| f.write(svg.to_xml) }
       end
 
       # not currently used
