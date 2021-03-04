@@ -106,10 +106,10 @@ RSpec.describe Metanorma::Utils do
 <svgmap id="_60dadf08-48d4-4164-845c-b4e293e00abd">
 <figure>
 <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
-<a xlink:href="mn://action_schema" >
+<a href="mn://action_schema" >
         <rect x="123.28" y="273.93" class="st0" width="88.05" height="41.84"/>
 </a>
-<a xlink:href="mn://basic_attribute_schema" >
+<a href="mn://basic_attribute_schema" >
         <rect x="324.69" y="450.52" class="st0" width="132.62" height="40.75"/>
 </a>
 <a xlink:href="mn://support_resource_schema" >
@@ -161,10 +161,10 @@ RSpec.describe Metanorma::Utils do
 <target href="mn://support_resource_schema"><eref type="express" bibitemid="express_action_schema" citeas=""><localityStack><locality type="anchor"><referenceFrom>action_schema.basic</referenceFrom></locality></localityStack>Coffee</eref></target></svgmap>
 <figure>
              <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
-               <a xlink:href='#ref1'>
+               <a href='#ref1'>
                  <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
                </a>
-               <a xlink:href='mn://basic_attribute_schema'>
+               <a href='mn://basic_attribute_schema'>
                  <rect x='324.69' y='450.52' class='st0' width='132.62' height='40.75'/>
                </a>
                <a xlink:href='mn://support_resource_schema'>

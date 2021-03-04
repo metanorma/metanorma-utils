@@ -139,7 +139,8 @@ module Metanorma
           t.remove if t.at(n.ns("./xref | ./link"))
         end
         svg.xpath(".//m:a", "m" => SVG_NS).each do |a|
-          x = targets[File.expand_path(a["xlink:href"])] and a["xlink:href"] = x
+          a["xlink:href"] and x = targets[File.expand_path(a["xlink:href"])] and a["xlink:href"] = x
+          a["href"] and x = targets[File.expand_path(a["href"])] and a["href"] = x
         end
         path and File.open(path, "w", encoding: "utf-8") { |f| f.write(svg.to_xml) }
       end
