@@ -109,18 +109,18 @@ module Metanorma
 
       SVG_NS = "http://www.w3.org/2000/svg".freeze
 
-      def svgmap_rewrite(xmldoc, localdir = "")
+      def svgmap_rewrite(xmldoc, localdirname = "")
         n = Namespace.new(xmldoc)
         xmldoc.xpath(n.ns("//svgmap")).each do |s|
-          next unless svgmap_rewrite0(s, n)
+          next unless svgmap_rewrite0(s, n, localdirname)
           next if s.at(n.ns("./target/eref"))
           s.replace(s.at(n.ns("./figure")))
         end
       end
 
-      def svgmap_rewrite0(s, n)
+      def svgmap_rewrite0(s, n, localdirname)
         if i = s.at(n.ns(".//image")) and src = i["src"]
-          path = /^data:/.match(src) ? save_dataimage(src) : File.file?(src) ? src : localdir + src
+          path = /^data:/.match(src) ? save_dataimage(src) : File.file?(src) ? src : localdirname + src
           File.file?(path) or return false
           svgmap_rewrite1(s, Nokogiri::XML(File.read(path, encoding: "utf-8")), path, n)
           /^data:/.match(src) and i["src"] = datauri(path)
@@ -178,9 +178,9 @@ module Metanorma
       # FIXME: nested uri path error(
       #   sources/plantuml/plantuml20200524-90467-1iqek5i.png ->
       #   sources/sources/plantuml/plantuml20200524-90467-1iqek5i.png)
-      def datauri(uri, localdir = ".")
+      def datauri(uri, localdirname = ".")
         return uri if /^data:/.match(uri)
-        path = %r{^([A-Z]:)?/}.match?(uri) ? uri : File.join(localdir, uri)
+        path = %r{^([A-Z]:)?/}.match?(uri) ? uri : File.join(localdirname, uri)
         types = MIME::Types.type_for(path)
         type = types ? types.first.to_s : 'text/plain; charset="utf-8"'
         bin = File.open(path, 'rb', &:read)
