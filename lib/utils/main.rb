@@ -175,12 +175,15 @@ module Metanorma
         result.reject(&:empty?)
       end
 
-      # FIXME: nested uri path error(
-      #   sources/plantuml/plantuml20200524-90467-1iqek5i.png ->
-      #   sources/sources/plantuml/plantuml20200524-90467-1iqek5i.png)
+      #   sources/plantuml/plantuml20200524-90467-1iqek5i.png already includes localdir
       def datauri(uri, localdir = ".")
         return uri if /^data:/.match(uri)
-        path = %r{^([A-Z]:)?/}.match?(uri) ? uri : File.join(localdir, uri)
+        path = %r{^([A-Z]:)?/}.match?(uri) ? uri : 
+          File.exist?(uri) ? uri : File.join(localdir, uri)
+        unless File.exist?(path)
+          warn "image at #{path} not found"
+          return uri
+        end
         types = MIME::Types.type_for(path)
         type = types ? types.first.to_s : 'text/plain; charset="utf-8"'
         bin = File.open(path, 'rb', &:read)
