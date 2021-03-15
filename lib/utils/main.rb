@@ -30,10 +30,10 @@ module Metanorma
         node.nil? || node.id.nil? || node.id.empty? ? "_" + uuid : node.id
       end
 
-      def asciidoc_sub(x)
+      def asciidoc_sub(x, flavour = :standoc)
         return nil if x.nil?
         return "" if x.empty?
-        d = Asciidoctor::Document.new(x.lines.entries, { header_footer: false, backend: :html })
+        d = Asciidoctor::Document.new(x.lines.entries, { header_footer: false, backend: flavour })
         b = d.parse.blocks.first
         b.apply_subs(b.source)
       end
