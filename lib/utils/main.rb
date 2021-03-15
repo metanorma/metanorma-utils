@@ -109,18 +109,18 @@ module Metanorma
 
       SVG_NS = "http://www.w3.org/2000/svg".freeze
 
-      def svgmap_rewrite(xmldoc, localdir = "")
+      def svgmap_rewrite(xmldoc, localdirectory = "")
         n = Namespace.new(xmldoc)
         xmldoc.xpath(n.ns("//svgmap")).each do |s|
-          next unless svgmap_rewrite0(s, n)
+          next unless svgmap_rewrite0(s, n, localdirectory)
           next if s.at(n.ns("./target/eref"))
           s.replace(s.at(n.ns("./figure")))
         end
       end
 
-      def svgmap_rewrite0(s, n)
+      def svgmap_rewrite0(s, n, localdirectory)
         if i = s.at(n.ns(".//image")) and src = i["src"]
-          path = /^data:/.match(src) ? save_dataimage(src) : File.file?(src) ? src : localdir + src
+          path = /^data:/.match(src) ? save_dataimage(src) : File.file?(src) ? src : localdirectory + src
           File.file?(path) or return false
           svgmap_rewrite1(s, Nokogiri::XML(File.read(path, encoding: "utf-8")), path, n)
           /^data:/.match(src) and i["src"] = datauri(path)
@@ -176,10 +176,10 @@ module Metanorma
       end
 
       #   sources/plantuml/plantuml20200524-90467-1iqek5i.png already includes localdir
-      def datauri(uri, localdir = ".")
+      def datauri(uri, localdirectory = ".")
         return uri if /^data:/.match(uri)
         path = %r{^([A-Z]:)?/}.match?(uri) ? uri : 
-          File.exist?(uri) ? uri : File.join(localdir, uri)
+          File.exist?(uri) ? uri : File.join(localdirectory, uri)
         unless File.exist?(path)
           warn "image at #{path} not found"
           return uri
