@@ -120,6 +120,7 @@ module Metanorma
 
       def svgmap_rewrite0(s, n, localdirectory)
         if i = s.at(n.ns(".//image")) and src = i["src"]
+          warn "$$$: #{src}"
           path = /^data:/.match(src) ? save_dataimage(src) : 
             (File.file?(src) || %r{^([A-Z]:)?/}.match?(src)) ? src : localdirectory + src
           File.file?(path) or return false
