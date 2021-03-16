@@ -122,7 +122,8 @@ module Metanorma
         if i = s.at(n.ns(".//image")) and src = i["src"]
           warn "$$$: #{src}"
           path = /^data:/.match(src) ? save_dataimage(src) : 
-            (File.file?(src) || %r{^([A-Z]:)?/}.match?(src)) ? src : localdirectory + src
+            (File.file?(src) || %r{^([A-Z]:)?/}.match?(src)) ? src : (localdirectory + src)
+          warn "$$$$: #{path}"
           File.file?(path) or return false
           svgmap_rewrite1(s, Nokogiri::XML(File.read(path, encoding: "utf-8")), path, n)
           /^data:/.match(src) and i["src"] = datauri(path)
