@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "nokogiri", "~> 1.10.4"
   spec.add_dependency "asciidoctor", "~> 2.0.0"
   spec.add_dependency "uuidtools"
-  spec.add_dependency "mimemagic"
+  spec.add_dependency "marcel", "~> 1.0.0"
   spec.add_dependency "mime-types"
 
   spec.add_development_dependency "byebug"

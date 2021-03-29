@@ -2,7 +2,7 @@ require "asciidoctor"
 require "tempfile"
 require "sterile"
 require "uuidtools"
-require "mimemagic"
+require "marcel"
 require "mime/types"
 require "base64"
 
@@ -207,7 +207,7 @@ module Metanorma
           file.binmode
           file.write(Base64.strict_decode64(imgdata))
           file.rewind
-          type = MimeMagic.by_magic(file)
+          type = Marcel::MimeType.for file
         ensure
           file.close!
         end
