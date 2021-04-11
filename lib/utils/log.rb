@@ -7,48 +7,51 @@ module Metanorma
 
       def add(category, loc, msg)
         return if @novalid
+
         @log[category] = [] unless @log[category]
         @log[category] << { location: current_location(loc), message: msg,
                             context: context(loc) }
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        warn "#{category}: #{loc}#{msg}" 
+        warn "#{category}: #{loc}#{msg}"
       end
 
-      def current_location(n)
-        return "" if n.nil?
-        return n if n.is_a? String
-        return "Asciidoctor Line #{"%06d" % n.lineno}" if n.respond_to?(:lineno) &&
-          !n.lineno.nil? && !n.lineno.empty?
-        return "XML Line #{"%06d" % n.line}" if n.respond_to?(:line) &&
-          !n.line.nil?
-        return "ID #{n.id}" if n.respond_to?(:id) && !n.id.nil?
-        while !n.nil? &&
-            (!n.respond_to?(:level) || n.level.positive?) &&
-            (!n.respond_to?(:context) || n.context != :section)
-          n = n.parent
-          return "Section: #{n.title}" if n&.respond_to?(:context) &&
-            n&.context == :section
+      def current_location(node)
+        if node.nil? then ""
+        elsif node.is_a? String then node
+        elsif node.respond_to?(:lineno) && !node.lineno.nil? &&
+          !node.lineno.empty?
+          "Asciidoctor Line #{'%06d' % node.lineno}"
+        elsif node.respond_to?(:line) && !node.line.nil?
+          "XML Line #{'%06d' % node.line}"
+        elsif node.respond_to?(:id) && !node.id.nil? then "ID #{node.id}"
+        else
+          while !node.nil? &&
+              (!node.respond_to?(:level) || node.level.positive?) &&
+              (!node.respond_to?(:context) || node.context != :section)
+            node = node.parent
+            return "Section: #{node.title}" if node&.respond_to?(:context) &&
+              node&.context == :section
+          end
+          "??"
         end
-        "??"
       end
 
-      def context(n)
-        return nil if n.is_a? String
-        n.respond_to?(:to_xml) and return n.to_xml
-        n.respond_to?(:to_s) and return n.to_s
+      def context(node)
+        return nil if node.is_a? String
+
+        node.respond_to?(:to_xml) and return node.to_xml
+        node.respond_to?(:to_s) and return node.to_s
         nil
       end
 
       def write(file)
         File.open(file, "w:UTF-8") do |f|
           f.puts "#{file} errors"
-          @log.keys.each do |key|
+          @log.each_key do |key|
             f.puts "\n\n== #{key}\n\n"
-            @log[key].sort do |a, b|
-              a[:location] <=> b[:location]
-            end.each do |n|
+            @log[key].sort_by { |a| a[:location] }.each do |n|
               loc = n[:location] ? "(#{n[:location]}): " : ""
-              f.puts "#{loc}#{n[:message]}" 
+              f.puts "#{loc}#{n[:message]}"
               n[:context]&.split(/\n/)&.first(5)&.each { |l| f.puts "\t#{l}" }
             end
           end
