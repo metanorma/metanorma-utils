@@ -158,9 +158,7 @@ RSpec.describe Metanorma::Utils do
              </target>
            </svgmap>
            <figure>
-       <?xml version="1.0" encoding="utf-8"??>
-             <!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-             <svg xmlns='http://www.w3.org/2000/svg' version='1.1' id='Layer_1' x='0px' y='0px' viewbox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve' xmlns:xlink='http://www.w3.org/1999/xlink'>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                <style/>
                <image/>
                <a xlink:href='#ref1'>
@@ -176,9 +174,7 @@ RSpec.describe Metanorma::Utils do
            </figure>
            <svgmap id='_60dadf08-48d4-4164-845c-b4e293e00abd'>
              <figure>
-       <?xml version="1.0" encoding="utf-8"??>
-               <!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-               <svg xmlns='http://www.w3.org/2000/svg' version='1.1' id='Layer_1' x='0px' y='0px' viewbox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve' xmlns:xlink='http://www.w3.org/1999/xlink'>
+             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                  <style/>
                  <image/>
                  <a xlink:href='mn://action_schema'>
@@ -204,7 +200,7 @@ RSpec.describe Metanorma::Utils do
              </target>
            </svgmap>
            <figure>
-             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+           <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                <a href='#ref1'>
                  <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
                </a>
@@ -218,9 +214,7 @@ RSpec.describe Metanorma::Utils do
            </figure>
            <svgmap id='_60dadf08-48d4-4164-845c-b4e293e00abd'>
              <figure>
-       <?xml version="1.0" encoding="utf-8"??>
-               <!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-               <svg xmlns='http://www.w3.org/2000/svg' version='1.1' id='Layer_1' x='0px' y='0px' viewbox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve' xmlns:xlink='http://www.w3.org/1999/xlink'>
+             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                  <style/>
                  <image/>
                  <a xlink:href='mn://action_schema'>
@@ -287,6 +281,7 @@ RSpec.describe Metanorma::Utils do
     INPUT
     Metanorma::Utils.svgmap_rewrite(xmldoc)
     expect(xmlpp(xmldoc.to_xml.gsub(%r{<image.*?</image>}m, "<image/>").gsub(%r{<style.*?</style>}m, "<style/>"))).to be_equivalent_to xmlpp(<<~OUTPUT)
+        <?xml version='1.0'?>
          <standard-document type="semantic" version="1.8.2" xmlns="http://www.example.com">
              <bibdata type="standard">
              <title language="en" format="text/plain">Document title</title>
@@ -307,9 +302,7 @@ RSpec.describe Metanorma::Utils do
              </bibdata>
              <sections><svgmap id="_d5b5049a-dd53-4ea0-bc6f-e8773bd59052"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target></svgmap>
              <figure>
-       <?xml version="1.0" encoding="utf-8"??>
-             <!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-             <svg xmlns='http://www.w3.org/2000/svg' version='1.1' id='Layer_1' x='0px' y='0px' viewbox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve' xmlns:xlink='http://www.w3.org/1999/xlink'>
+             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                <style/>
                <image/>
                <a xlink:href='#ref1'>
@@ -325,9 +318,7 @@ RSpec.describe Metanorma::Utils do
       </figure>
       <svgmap id='_60dadf08-48d4-4164-845c-b4e293e00abd'>
         <figure>
-        <?xml version="1.0" encoding="utf-8"??>
-               <!-- Generator: Adobe Illustrator 25.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-               <svg xmlns='http://www.w3.org/2000/svg' version='1.1' id='Layer_1' x='0px' y='0px' viewbox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve' xmlns:xlink='http://www.w3.org/1999/xlink'>
+        <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                  <style/>
                  <image/>
                  <a xlink:href='mn://action_schema'>

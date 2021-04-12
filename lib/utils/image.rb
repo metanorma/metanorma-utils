@@ -50,7 +50,7 @@ module Metanorma
           path = svgmap_rewrite0_path(src, localdirectory)
           File.file?(path) or return false
           svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
-          i.replace(svgmap_rewrite1(svgmap, svg, namespace))
+          i.replace(svgmap_rewrite1(svgmap, svg.root, namespace))
           /^data:/.match(src) and i["src"] = datauri(path)
         elsif i = svgmap.at(".//m:svg", "m" => SVG_NS)
           i.replace(svgmap_rewrite1(svgmap, i, namespace))
@@ -75,6 +75,7 @@ module Metanorma
             a[p] and x = targ[File.expand_path(a[p])] and a[p] = x
           end
         end
+        svg.xpath("processing-instruction()|.//processing-instruction()").remove
         svg.to_xml
       end
 
