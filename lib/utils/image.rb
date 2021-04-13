@@ -37,23 +37,23 @@ module Metanorma
 
       def svgmap_rewrite(xmldoc, localdirectory = "")
         n = Namespace.new(xmldoc)
-        xmldoc.xpath(n.ns("//svgmap")).each do |s|
-          next unless svgmap_rewrite0(s, n, localdirectory)
+        xmldoc.xpath(n.ns("//svgmap")).each_with_index do |s, i|
+          next unless svgmap_rewrite0(s, n, localdirectory, i)
           next if s.at(n.ns("./target/eref"))
 
           s.replace(s.at(n.ns("./figure")))
         end
       end
 
-      def svgmap_rewrite0(svgmap, namespace, localdirectory)
+      def svgmap_rewrite0(svgmap, namespace, localdirectory, idx)
         if (i = svgmap.at(namespace.ns(".//image"))) && (src = i["src"])
           path = svgmap_rewrite0_path(src, localdirectory)
           File.file?(path) or return false
           svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
-          i.replace(svgmap_rewrite1(svgmap, svg.root, namespace))
+          i.replace(svgmap_rewrite1(svgmap, svg.root, namespace, idx))
           /^data:/.match(src) and i["src"] = datauri(path)
         elsif i = svgmap.at(".//m:svg", "m" => SVG_NS)
-          i.replace(svgmap_rewrite1(svgmap, i, namespace))
+          i.replace(svgmap_rewrite1(svgmap, i, namespace, idx))
         else
           return false
         end
@@ -68,15 +68,20 @@ module Metanorma
         end
       end
 
-      def svgmap_rewrite1(svgmap, svg, namespace)
+      def svgmap_rewrite1(svgmap, svg, namespace, idx)
+        svg_update_href(svgmap, svg, namespace)
+        svg_update_ids(svg, idx)
+        svg.xpath("processing-instruction()|.//processing-instruction()").remove
+        svg.to_xml
+      end
+
+      def svg_update_href(svgmap, svg, namespace)
         targ = svgmap_rewrite1_targets(svgmap, namespace)
         svg.xpath(".//m:a", "m" => SVG_NS).each do |a|
           ["xlink:href", "href"].each do |p|
             a[p] and x = targ[File.expand_path(a[p])] and a[p] = x
           end
         end
-        svg.xpath("processing-instruction()|.//processing-instruction()").remove
-        svg.to_xml
       end
 
       def svgmap_rewrite1_targets(svgmap, namespace)
@@ -87,6 +92,34 @@ module Metanorma
           x = t.at(namespace.ns("./link")) and
             m[File.expand_path(t["href"])] = x["target"]
           t.remove if t.at(namespace.ns("./xref | ./link"))
+        end
+      end
+
+      def svg_update_ids(svg, idx)
+        ids = svg.xpath("./@id | .//@id")
+          .each_with_object([]) { |i, m| m << i.value }
+        return if ids.empty?
+
+        svg_update_ids_attrs(svg, ids, idx)
+        svg_update_ids_css(svg, ids, idx)
+      end
+
+      def svg_update_ids_attrs(svg, ids, idx)
+        svg.xpath(". | .//*[@*]").each do |a|
+          a.attribute_nodes.each do |x|
+            ids.include?(x.value) and x.value += sprintf("_%09d", idx)
+          end
+        end
+      end
+
+      def svg_update_ids_css(svg, ids, idx)
+        svg.xpath("//m:style", "m" => SVG_NS).each do |s|
+          c = s.children.to_xml
+          ids.each do |i|
+            c = c.gsub(%r[##{i}\b], sprintf("#%s_%09d", i, idx))
+              .gsub(%r(\[id\s*=\s*['"]?#{i}['"]?\]), sprintf("[id='%s_%09d']", i, idx))
+          end
+          s.children = c
         end
       end
 

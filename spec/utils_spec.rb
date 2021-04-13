@@ -158,10 +158,10 @@ RSpec.describe Metanorma::Utils do
              </target>
            </svgmap>
            <figure>
-<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+            <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1_000000001' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                <style/>
                <image/>
-               <a xlink:href='#ref1'>
+               <a xlink:href='#ref1' xlink:dummy='Layer_1_000000001'>
                  <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
                </a>
                <a xlink:href='mn://basic_attribute_schema'>
@@ -174,10 +174,10 @@ RSpec.describe Metanorma::Utils do
            </figure>
            <svgmap id='_60dadf08-48d4-4164-845c-b4e293e00abd'>
              <figure>
-             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1_000000002' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                  <style/>
                  <image/>
-                 <a xlink:href='mn://action_schema'>
+                 <a xlink:href='mn://action_schema'  xlink:dummy='Layer_1_000000002'>
                    <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
                  </a>
                  <a xlink:href='http://www.example.com'>
@@ -200,7 +200,7 @@ RSpec.describe Metanorma::Utils do
              </target>
            </svgmap>
            <figure>
-           <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+           <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1_000000003' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                <a href='#ref1'>
                  <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
                </a>
@@ -214,7 +214,7 @@ RSpec.describe Metanorma::Utils do
            </figure>
            <svgmap id='_60dadf08-48d4-4164-845c-b4e293e00abd'>
              <figure>
-             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1_000000004' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
                  <style/>
                  <image/>
                  <a xlink:href='mn://action_schema'>
@@ -280,7 +280,7 @@ RSpec.describe Metanorma::Utils do
       </standard-document>
     INPUT
     Metanorma::Utils.svgmap_rewrite(xmldoc)
-    expect(xmlpp(xmldoc.to_xml.gsub(%r{<image.*?</image>}m, "<image/>").gsub(%r{<style.*?</style>}m, "<style/>"))).to be_equivalent_to xmlpp(<<~OUTPUT)
+    expect(xmlpp(xmldoc.to_xml.gsub(%r{<image.*?</image>}m, "<image/>"))).to be_equivalent_to xmlpp(<<~OUTPUT)
         <?xml version='1.0'?>
          <standard-document type="semantic" version="1.8.2" xmlns="http://www.example.com">
              <bibdata type="standard">
@@ -302,10 +302,13 @@ RSpec.describe Metanorma::Utils do
              </bibdata>
              <sections><svgmap id="_d5b5049a-dd53-4ea0-bc6f-e8773bd59052"><target href="mn://action_schema"><xref target="ref1">Computer</xref></target></svgmap>
              <figure>
-             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
-               <style/>
+             <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1_000000001' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+             <style type='text/css'>
+   #Layer_1_000000001 { fill:none } svg[id='Layer_1_000000001'] {
+  fill:none } .st0{fill:none;stroke:#000000;stroke-miterlimit:10;}
+</style>
                <image/>
-               <a xlink:href='#ref1'>
+               <a xlink:href='#ref1' xlink:dummy='Layer_1_000000001'>
                  <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
                </a>
                <a xlink:href='mn://basic_attribute_schema'>
@@ -318,10 +321,13 @@ RSpec.describe Metanorma::Utils do
       </figure>
       <svgmap id='_60dadf08-48d4-4164-845c-b4e293e00abd'>
         <figure>
-        <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
-                 <style/>
+        <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1_000000002' x='0px' y='0px' viewBox='0 0 595.28 841.89' style='enable-background:new 0 0 595.28 841.89;' xml:space='preserve'>
+        <style type='text/css'>
+   #Layer_1_000000002 { fill:none } svg[id='Layer_1_000000002'] {
+  fill:none } .st0{fill:none;stroke:#000000;stroke-miterlimit:10;}
+</style>
                  <image/>
-                 <a xlink:href='mn://action_schema'>
+                 <a xlink:href='mn://action_schema' xlink:dummy='Layer_1_000000002'>
                    <rect x='123.28' y='273.93' class='st0' width='88.05' height='41.84'/>
                  </a>
                  <a xlink:href='http://www.example.com'>
