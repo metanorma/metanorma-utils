@@ -20,23 +20,23 @@ RSpec.configure do |config|
 end
 
 class Dummy
-  attr_accessor :id
-  attr_accessor :docfile
+  attr_accessor :id, :docfile
+
   def initialize(id = nil)
     @id = id
   end
 
-  def attr(x)
-    case x
+  def attr(elem)
+    case elem
     when "docfile" then @docfile
     end
   end
 end
 
-def xmlpp(x)
+def xmlpp(xml)
   s = ""
   f = REXML::Formatters::Pretty.new(2)
   f.compact = true
-  f.write(REXML::Document.new(x), s)
+  f.write(REXML::Document.new(xml), s)
   s
 end

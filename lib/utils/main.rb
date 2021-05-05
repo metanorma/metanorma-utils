@@ -91,13 +91,13 @@ module Metanorma
       # not currently used
       def flatten_rawtext_lines(node, result)
         node.lines.each do |x|
-          if node.respond_to?(:context) &&
+          result << if node.respond_to?(:context) &&
               (node.context == :literal || node.context == :listing)
-            result << x.gsub(/</, "&lt;").gsub(/>/, "&gt;")
-          else
-            # strip not only HTML <tag>, and Asciidoc xrefs <<xref>>
-            result << x.gsub(/<[^>]*>+/, "")
-          end
+                      x.gsub(/</, "&lt;").gsub(/>/, "&gt;")
+                    else
+                      # strip not only HTML <tag>, and Asciidoc xrefs <<xref>>
+                      x.gsub(/<[^>]*>+/, "")
+                    end
         end
         result
       end

@@ -1,6 +1,6 @@
 # coding: utf-8
 
-lib = File.expand_path("../lib", __FILE__)
+lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "utils/version"
 
@@ -24,18 +24,19 @@ Gem::Specification.new do |spec|
   spec.test_files    = `git ls-files -- {spec}/*`.split("\n")
   spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
 
-  spec.add_dependency "sterile", "~> 1.0.14"
-  spec.add_dependency "concurrent-ruby"
-  spec.add_dependency "nokogiri", "~> 1.10.4"
   spec.add_dependency "asciidoctor", "~> 2.0.0"
-  spec.add_dependency "uuidtools"
+  spec.add_dependency "concurrent-ruby"
   spec.add_dependency "marcel", "~> 1.0.0"
   spec.add_dependency "mime-types"
+  spec.add_dependency "nokogiri", "~> 1.10.4"
+  spec.add_dependency "sterile", "~> 1.0.14"
+  spec.add_dependency "uuidtools"
 
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "equivalent-xml", "~> 0.6"
   spec.add_development_dependency "guard", "~> 2.14"
   spec.add_development_dependency "guard-rspec", "~> 4.7"
+  spec.add_development_dependency "metanorma-standoc", "~> 1.8"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.6"
   spec.add_development_dependency "rubocop", "~> 1.5.2"
@@ -43,5 +44,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "timecop", "~> 0.9"
   spec.add_development_dependency "vcr", "~> 5.0.0"
   spec.add_development_dependency "webmock"
-  spec.add_development_dependency "metanorma-standoc", "~> 1.8"
 end

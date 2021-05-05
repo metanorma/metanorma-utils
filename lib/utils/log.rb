@@ -19,7 +19,7 @@ module Metanorma
         if node.nil? then ""
         elsif node.is_a? String then node
         elsif node.respond_to?(:lineno) && !node.lineno.nil? &&
-          !node.lineno.empty?
+            !node.lineno.empty?
           "Asciidoctor Line #{'%06d' % node.lineno}"
         elsif node.respond_to?(:line) && !node.line.nil?
           "XML Line #{'%06d' % node.line}"
