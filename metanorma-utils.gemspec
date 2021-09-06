@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
   spec.files         = `git ls-files`.split("\n")
   spec.test_files    = `git ls-files -- {spec}/*`.split("\n")
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.4.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.add_dependency "asciidoctor", "~> 2.0.0"
   spec.add_dependency "concurrent-ruby"
@@ -31,12 +31,13 @@ Gem::Specification.new do |spec|
   spec.add_dependency "nokogiri", "~> 1.11"
   spec.add_dependency "sterile", "~> 1.0.14"
   spec.add_dependency "uuidtools"
+  spec.add_dependency "htmlentities", "~> 4.3.4"
 
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "equivalent-xml", "~> 0.6"
   spec.add_development_dependency "guard", "~> 2.14"
   spec.add_development_dependency "guard-rspec", "~> 4.7"
-  spec.add_development_dependency "metanorma-standoc", "~> 1.8"
+  spec.add_development_dependency "metanorma-standoc", "~> 1.10"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.6"
   spec.add_development_dependency "rubocop", "~> 1.5.2"

@@ -54,8 +54,7 @@ module Metanorma
           /^data:/.match(src) and i["src"] = datauri(path)
         elsif i = svgmap.at(".//m:svg", "m" => SVG_NS)
           i.replace(svgmap_rewrite1(svgmap, i, namespace, idx))
-        else
-          return false
+        else return false
         end
         true
       end

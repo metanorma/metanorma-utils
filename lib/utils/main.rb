@@ -2,25 +2,28 @@ require "asciidoctor"
 require "tempfile"
 require "sterile"
 require "uuidtools"
+require "htmlentities"
 
 module Metanorma
   module Utils
-    NAMECHAR = "\u0000-\u0022\u0024\u002c\u002f\u003a-\u0040\\u005b-\u005e"\
-      "\u0060\u007b-\u00b6\u00b8-\u00bf\u00d7\u00f7\u037e\u2000-\u200b"\
-      "\u200e-\u203e\u2041-\u206f\u2190-\u2bff\u2ff0-\u3000".freeze
+    NAMECHAR = "\u0000-\u002c\u002f\u003a-\u0040\\u005b-\u005e"\
+               "\u0060\u007b-\u00b6\u00b8-\u00bf\u00d7\u00f7\u037e"\
+               "\u2000-\u200b"\
+               "\u200e-\u203e\u2041-\u206f\u2190-\u2bff\u2ff0-\u3000".freeze
     NAMESTARTCHAR = "\\u002d\u002e\u0030-\u0039\u00b7\u0300-\u036f"\
-      "\u203f-\u2040".freeze
+                    "\u203f-\u2040".freeze
 
     class << self
-      def to_ncname(tag)
+      def to_ncname(tag, asciionly: true)
+        asciionly and tag = HTMLEntities.new.encode(tag, :basic, :hexadecimal)
         start = tag[0]
-        ret1 = if %r([#{NAMECHAR}#]).match?(start)
+        ret1 = if %r([#{NAMECHAR}#])o.match?(start)
                  "_"
                else
-                 (%r([#{NAMESTARTCHAR}#]).match?(start) ? "_#{start}" : start)
+                 (%r([#{NAMESTARTCHAR}#])o.match?(start) ? "_#{start}" : start)
                end
         ret2 = tag[1..-1] || ""
-        (ret1 || "") + ret2.gsub(%r([#{NAMECHAR}#]), "_")
+        (ret1 || "") + ret2.gsub(%r([#{NAMECHAR}#])o, "_")
       end
 
       def anchor_or_uuid(node = nil)
@@ -34,7 +37,7 @@ module Metanorma
 
         d = Asciidoctor::Document.new(
           text.lines.entries,
-          { header_footer: false, backend: flavour }
+          { header_footer: false, backend: flavour },
         )
         b = d.parse.blocks.first
         b.apply_subs(b.source)
