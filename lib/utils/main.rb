@@ -91,6 +91,22 @@ module Metanorma
         hash
       end
 
+      def strict_capitalize_phrase(str)
+        str.split(/ /).map do |w|
+          letters = w.chars
+          letters.first.upcase!
+          letters.join
+        end.join(" ")
+      end
+
+      def strict_capitalize_first(str)
+        str.split(/ /).each_with_index.map do |w, i|
+          letters = w.chars
+          letters.first.upcase! if i.zero?
+          letters.join
+        end.join(" ")
+      end
+
       # not currently used
       def flatten_rawtext_lines(node, result)
         node.lines.each do |x|
