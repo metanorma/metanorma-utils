@@ -107,6 +107,17 @@ module Metanorma
         end.join(" ")
       end
 
+      def external_path(path)
+        win = !!((RUBY_PLATFORM =~ /(win|w)(32|64)$/) ||
+                 (RUBY_PLATFORM =~ /mswin|mingw/))
+        if win
+          path.gsub!(%{/}, "\\")
+          path[/\s/] ? "\"#{path}\"" : path
+        else
+          path
+        end
+      end
+
       # not currently used
       def flatten_rawtext_lines(node, result)
         node.lines.each do |x|

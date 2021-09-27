@@ -11,6 +11,15 @@ RSpec.describe Metanorma::Utils do
     expect(Metanorma::Utils.strict_capitalize_first("aBC def gHI")).to eq "ABC def gHI"
   end
 
+  it "converts OS-specific external path" do
+    pwd = if !!((RUBY_PLATFORM =~ /(win|w)(32|64)$/) ||
+                 (RUBY_PLATFORM =~ /mswin|mingw/))
+            `echo %cd%`
+          else `pwd`
+          end
+    expect(Metanorma::Utils.external_path(FileUtils.pwd.strip)).to eq pwd.strip
+  end
+
   it "normalises anchors" do
     expect(Metanorma::Utils.to_ncname("/:ab")).to eq "__ab"
     expect(Metanorma::Utils.to_ncname("Löwe")).to eq "L__xf6_we"

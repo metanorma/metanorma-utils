@@ -23,7 +23,7 @@ module Metanorma
       end
 
       def save_dataimage(uri)
-        %r{^data:(image|application)/(?<imgtype>[^;]+);base64,(?<imgdata>.+)$} =~ uri
+        %r{^data:(image|application)/(?<imgtype>[^;]+);(charset=[^;]+;)?base64,(?<imgdata>.+)$} =~ uri
         imgtype.sub!(/\+[a-z0-9]+$/, "") # svg+xml
         imgtype = "png" unless /^[a-z0-9]+$/.match? imgtype
         Tempfile.open(["image", ".#{imgtype}"]) do |f|
