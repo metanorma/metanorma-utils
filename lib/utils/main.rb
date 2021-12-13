@@ -68,10 +68,8 @@ module Metanorma
       def set_nested_value(hash, keys, new_val)
         key = keys[0]
         if keys.length == 1
-          hash[key] = if hash[key].is_a?(Array)
-                        (hash[key] << new_val)
-                      else
-                        hash[key].nil? ? new_val : [hash[key], new_val]
+          hash[key] = if hash[key].is_a?(Array) then (hash[key] << new_val)
+                      else hash[key].nil? ? new_val : [hash[key], new_val]
                       end
         elsif hash[key].is_a?(Array)
           hash[key][-1] = {} if !hash[key].empty? && hash[key][-1].nil?

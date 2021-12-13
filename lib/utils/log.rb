@@ -29,7 +29,7 @@ module Metanorma
               (!node.respond_to?(:level) || node.level.positive?) &&
               (!node.respond_to?(:context) || node.context != :section)
             node = node.parent
-            return "Section: #{node.title}" if node&.respond_to?(:context) &&
+            return "Section: #{node.title}" if node.respond_to?(:context) &&
               node&.context == :section
           end
           "??"
@@ -50,11 +50,17 @@ module Metanorma
           @log.each_key do |key|
             f.puts "\n\n== #{key}\n\n"
             @log[key].sort_by { |a| a[:location] }.each do |n|
-              loc = n[:location] ? "(#{n[:location]}): " : ""
-              f.puts "#{loc}#{n[:message]}"
-              n[:context]&.split(/\n/)&.first(5)&.each { |l| f.puts "\t#{l}" }
+              write1(f, n)
             end
           end
+        end
+      end
+
+      def write1(file, entry)
+        loc = entry[:location] ? "(#{entry[:location]}): " : ""
+        file.puts "#{loc}#{entry[:message]}"
+        entry[:context]&.split(/\n/)&.first(5)&.each do |l|
+          file.puts "\t#{l}"
         end
       end
     end

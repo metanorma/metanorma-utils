@@ -115,8 +115,10 @@ module Metanorma
         svg.xpath("//m:style", "m" => SVG_NS).each do |s|
           c = s.children.to_xml
           ids.each do |i|
-            c = c.gsub(%r[##{i}\b], sprintf("#%s_%09d", i, idx))
-              .gsub(%r(\[id\s*=\s*['"]?#{i}['"]?\]), sprintf("[id='%s_%09d']", i, idx))
+            c = c.gsub(%r[##{i}\b],
+                       sprintf("#%<id>s_%<idx>09d", id: i, idx: idx))
+              .gsub(%r(\[id\s*=\s*['"]?#{i}['"]?\]),
+                    sprintf("[id='%<id>s_%<idx>09d']", id: i, idx: idx))
           end
           s.children = c
         end
