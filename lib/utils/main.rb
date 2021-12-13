@@ -118,6 +118,26 @@ module Metanorma
         end
       end
 
+      def default_script(lang)
+        case lang
+        when "ar", "fa" then "Arab"
+        when "ur" then "Aran"
+        when "ru", "bg" then "Cyrl"
+        when "hi" then "Deva"
+        when "el" then "Grek"
+        when "zh" then "Hans"
+        when "ko" then "Kore"
+        when "he" then "Hebr"
+        when "ja" then "Jpan"
+        else
+          "Latn"
+        end
+      end
+
+      def rtl_script?(script)
+        %w(Arab Aran Hebr).include? script
+      end
+
       # not currently used
       def flatten_rawtext_lines(node, result)
         node.lines.each do |x|

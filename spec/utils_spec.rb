@@ -7,8 +7,10 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "capitalises" do
-    expect(Metanorma::Utils.strict_capitalize_phrase("ABC def gHI")).to eq "ABC Def GHI"
-    expect(Metanorma::Utils.strict_capitalize_first("aBC def gHI")).to eq "ABC def gHI"
+    expect(Metanorma::Utils.strict_capitalize_phrase("ABC def gHI"))
+      .to eq "ABC Def GHI"
+    expect(Metanorma::Utils.strict_capitalize_first("aBC def gHI"))
+      .to eq "ABC def gHI"
   end
 
   it "converts OS-specific external path" do
@@ -29,12 +31,13 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "sets metanorma IDs if not provided" do
+    uuid = /^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
     expect(Metanorma::Utils.anchor_or_uuid)
-      .to match (/^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+      .to match (uuid)
     expect(Metanorma::Utils.anchor_or_uuid(Dummy.new(nil)))
-      .to match (/^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+      .to match (uuid)
     expect(Metanorma::Utils.anchor_or_uuid(Dummy.new("")))
-      .to match (/^_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
+      .to match (uuid)
     expect(Metanorma::Utils.anchor_or_uuid(Dummy.new("A"))).to eq "A"
   end
 
@@ -55,7 +58,8 @@ RSpec.describe Metanorma::Utils do
 
   it "applies smart formatting" do
     expect(Metanorma::Utils.smartformat("A - B A -- B A--B '80s '80' <A>"))
-      .to eq "A&#8201;&#8212;&#8201;B A&#8201;&#8212;&#8201;B A&#8212;B ’80s ‘80’ &lt;A&gt;"
+      .to eq "A&#8201;&#8212;&#8201;B A&#8201;&#8212;&#8201;B "\
+             "A&#8212;B ’80s ‘80’ &lt;A&gt;"
   end
 
   it "applies en-dash normalisation" do
@@ -96,6 +100,14 @@ RSpec.describe Metanorma::Utils do
     expect(a.to_s).to be_equivalent_to <<~OUTPUT
       {"X"=>"x", "X1"=>[9, 4, {"a"=>11}], "X2"=>[3, 4, {"A"=>5}], "X3"=>{"a"=>["b", 8], "A"=>7}, "X2a"=>[{"A"=>6}], "X4"=>{"A"=>10}}
     OUTPUT
+  end
+
+  it "maps languages to scripts" do
+    expect(Metanorma::Utils.default_script("hi")).to eq "Deva"
+    expect(Metanorma::Utils.rtl_script?(Metanorma::Utils.default_script("el")))
+      .to eq false
+    expect(Metanorma::Utils.rtl_script?(Metanorma::Utils.default_script("fa")))
+      .to eq true
   end
 
   it "rewrites SVGs" do
