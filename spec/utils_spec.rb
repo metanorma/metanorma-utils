@@ -58,8 +58,7 @@ RSpec.describe Metanorma::Utils do
 
   it "applies smart formatting" do
     expect(Metanorma::Utils.smartformat("A - B A -- B A--B '80s '80' <A>"))
-      .to eq "A&#8201;&#8212;&#8201;B A&#8201;&#8212;&#8201;B "\
-             "A&#8212;B ’80s ‘80’ &lt;A&gt;"
+      .to eq "A — B A — B A—B ’80s ‘80’ &lt;A&gt;"
   end
 
   it "applies en-dash normalisation" do

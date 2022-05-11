@@ -50,9 +50,13 @@ module Metanorma
 
       # TODO needs internationalisation
       def smartformat(text)
-        text.gsub(/ --? /, "&#8201;&#8212;&#8201;")
-          .gsub(/--/, "&#8212;").smart_format.gsub(/</, "&lt;")
-          .gsub(/>/, "&gt;")
+        HTMLEntities.new.encode(
+          HTMLEntities.new.decode(
+            text.gsub(/ --? /, "&#8201;&#8212;&#8201;")
+            .gsub(/--/, "&#8212;"),
+          )
+            .smart_format, :basic
+        )
       end
 
       def endash_date(elem)
