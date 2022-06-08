@@ -7,3 +7,5 @@ image:https://img.shields.io/github/issues-pr-raw/metanorma/metanorma-utils.svg[
 image:https://img.shields.io/github/commits-since/metanorma/metanorma-utils/latest.svg["Commits since latest",link="https://github.com/metanorma/metanorma-utils/releases"]
 
 Utilities methods for http://metanorma.com[Metanorma] stack
+
+BUMP 1
