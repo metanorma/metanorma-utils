@@ -8,4 +8,4 @@ image:https://img.shields.io/github/commits-since/metanorma/metanorma-utils/late
 
 Utilities methods for http://metanorma.com[Metanorma] stack
 
-BUMP 1
+BUMP 2
