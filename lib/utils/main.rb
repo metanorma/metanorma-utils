@@ -1,34 +1,35 @@
 require "asciidoctor"
 require "tempfile"
 require "sterile"
-require "uuidtools"
 require "htmlentities"
+require "nokogiri"
 
 module Metanorma
   module Utils
-    NAMECHAR = "\u0000-\u002c\u002f\u003a-\u0040\\u005b-\u005e"\
-               "\u0060\u007b-\u00b6\u00b8-\u00bf\u00d7\u00f7\u037e"\
-               "\u2000-\u200b"\
-               "\u200e-\u203e\u2041-\u206f\u2190-\u2bff\u2ff0-\u3000".freeze
-    NAMESTARTCHAR = "\\u002d\u002e\u0030-\u0039\u00b7\u0300-\u036f"\
-                    "\u203f-\u2040".freeze
-
     class << self
-      def to_ncname(tag, asciionly: true)
-        asciionly and tag = HTMLEntities.new.encode(tag, :basic, :hexadecimal)
-        start = tag[0]
-        ret1 = if %r([#{NAMECHAR}#])o.match?(start)
-                 "_"
-               else
-                 (%r([#{NAMESTARTCHAR}#])o.match?(start) ? "_#{start}" : start)
-               end
-        ret2 = tag[1..-1] || ""
-        (ret1 || "") + ret2.gsub(%r([#{NAMECHAR}#])o, "_")
+      def attr_code(attributes)
+        attributes.compact.transform_values do |v|
+          v.is_a?(String) ? HTMLEntities.new.decode(v) : v
+        end
       end
 
-      def anchor_or_uuid(node = nil)
-        uuid = UUIDTools::UUID.random_create
-        node.nil? || node.id.nil? || node.id.empty? ? "_#{uuid}" : node.id
+      # , " => ," : CSV definition does not deal with space followed by quote
+      # at start of field
+      def csv_split(text, delim = ";")
+        return if text.nil?
+
+        CSV.parse_line(text&.gsub(/#{delim} "(?!")/, "#{delim}\""),
+                       liberal_parsing: true,
+                       col_sep: delim)&.compact&.map(&:strip)
+      end
+
+      # if the contents of node are blocks, output them to out;
+      # else, wrap them in <p>
+      def wrap_in_para(node, out)
+        if node.blocks? then out << node.content
+        else
+          out.p { |p| p << node.content }
+        end
       end
 
       def asciidoc_sub(text, flavour = :standoc)
@@ -140,35 +141,29 @@ module Metanorma
         %w(Arab Aran Hebr).include? script
       end
 
-      # not currently used
-      def flatten_rawtext_lines(node, result)
-        node.lines.each do |x|
-          result << if node.respond_to?(:context) &&
-              (node.context == :literal || node.context == :listing)
-                      x.gsub(/</, "&lt;").gsub(/>/, "&gt;")
-                    else
-                      # strip not only HTML <tag>, and Asciidoc xrefs <<xref>>
-                      x.gsub(/<[^>]*>+/, "")
-                    end
-        end
-        result
+      # convert definition list term/value pair into Nokogiri XML attribute
+      def dl_to_attrs(elem, dlist, name)
+        e = dlist.at("./dt[text()='#{name}']") or return
+        val = e.at("./following::dd/p") || e.at("./following::dd") or return
+        elem[name] = val.text
       end
 
-      # not currently used
-      # if node contains blocks, flatten them into a single line;
-      # and extract only raw text
-      def flatten_rawtext(node)
-        result = []
-        if node.respond_to?(:blocks) && node.blocks?
-          node.blocks.each { |b| result << flatten_rawtext(b) }
-        elsif node.respond_to?(:lines)
-          result = flatten_rawtext_lines(node, result)
-        elsif node.respond_to?(:text)
-          result << node.text.gsub(/<[^>]*>+/, "")
-        else
-          result << node.content.gsub(/<[^>]*>+/, "")
+      # convert definition list term/value pairs into Nokogiri XML elements
+      def dl_to_elems(ins, elem, dlist, name)
+        a = elem.at("./#{name}[last()]")
+        ins = a if a
+        dlist.xpath("./dt[text()='#{name}']").each do |e|
+          ins = dl_to_elems1(e, name, ins)
         end
-        result.reject(&:empty?)
+        ins
+      end
+
+      def dl_to_elems1(term, name, ins)
+        v = term.at("./following::dd")
+        e = v.elements and e.size == 1 && e.first.name == "p" and v = e.first
+        v.name = name
+        ins.next = v
+        ins.next
       end
     end
   end
