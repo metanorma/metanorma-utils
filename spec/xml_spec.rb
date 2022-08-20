@@ -66,4 +66,10 @@ RSpec.describe Metanorma::Utils do
       <div class="paragraph"><p>A</p></div><div class="paragraph"><p>B</p></div>
     OUTPUT
   end
+
+  it "applies namespace to xpath" do
+    expect(Metanorma::Utils.ns("//ab/Bb/c1-d[ancestor::c][d = 'x'][e/f]"))
+      .to be_equivalent_to("//xmlns:ab/xmlns:Bb/xmlns:c1-d[ancestor::xmlns:c]"\
+                           "[xmlns:d = 'x'][xmlns:e/xmlns:f]")
+  end
 end
