@@ -49,4 +49,11 @@ RSpec.describe Metanorma::Utils do
     expect(result[:test4][0]).to include(:test41)
     expect(result[:test4][0][:test41]).to eq("test41")
   end
+
+  it "deep merges hashes" do
+    hash1 = { a: [1, 2], b: "c", c: 4, e: { f: { g: "1" } } }
+    hash2 = { a: [3], b: "d", d: 5, e: { f: { h: "2" } } }
+    expect(hash1.deep_merge(hash2)).to eq({ a: [1, 2, 3], b: "d", c: 4,
+                                            d: 5, e: { f: { g: "1", h: "2" } } })
+  end
 end
