@@ -3,6 +3,8 @@ require "utils/hash_transform_keys"
 
 RSpec.describe Metanorma::Utils do
   it "deep stringify hash but skip values" do
+    Hash.include Metanorma::Utils::Hash
+    Array.include Metanorma::Utils::Array
     result = {
       test0: :test0,
       test1: false,
@@ -27,6 +29,8 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "deep symbolize hash but skip values" do
+    Hash.include Metanorma::Utils::Hash
+    Array.include Metanorma::Utils::Array
     result = {
       test0: "test0",
       test1: false,
@@ -51,6 +55,7 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "deep merges hashes" do
+    Hash.include Metanorma::Utils::Hash
     hash1 = { a: [1, 2], b: "c", c: 4, e: { f: { g: "1" } } }
     hash2 = { a: [3], b: "d", d: 5, e: { f: { h: "2" } } }
     expect(hash1.deep_merge(hash2)).to eq({ a: [1, 2, 3], b: "d", c: 4,
