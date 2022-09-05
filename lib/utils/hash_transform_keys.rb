@@ -4,7 +4,7 @@ module Metanorma
       def stringify_all_keys
         map do |v|
           case v
-          when Hash, Array
+          when ::Hash, ::Array
             v.stringify_all_keys
           else
             v
@@ -15,7 +15,7 @@ module Metanorma
       def symbolize_all_keys
         map do |v|
           case v
-          when Hash, Array
+          when ::Hash, ::Array
             v.symbolize_all_keys
           else
             v
@@ -33,7 +33,7 @@ module Metanorma
         result = {}
         each do |k, v|
           result[k.to_s] = case v
-                           when Hash, Array
+                           when ::Hash, ::Array
                              v.stringify_all_keys
                            else
                              v
@@ -46,7 +46,7 @@ module Metanorma
         result = {}
         each do |k, v|
           result[k.to_sym] = case v
-                             when Hash, Array
+                             when ::Hash, ::Array
                                v.symbolize_all_keys
                              else
                                v
@@ -57,9 +57,9 @@ module Metanorma
 
       def deep_merge(second)
         merger = proc { |_, v1, v2|
-          if Hash === v1 && Hash === v2
+          if ::Hash === v1 && ::Hash === v2
             v1.merge(v2, &merger)
-          elsif Array === v1 && Array === v2
+          elsif ::Array === v1 && ::Array === v2
             v1 | v2
           elsif [:undefined, nil,
                  :nil].include?(v2)
