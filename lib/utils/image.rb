@@ -172,12 +172,24 @@ module Metanorma
         %r{^([A-Z]:)?/}.match?(url)
       end
 
-      # FIXME: This method should ONLY return 1 type, remove Array wrapper
-      def datauri2mime(uri)
+      def decode_datauri(uri)
         %r{^data:(?<mimetype>[^;]+);base64,(?<mimedata>.+)$} =~ uri
         return nil unless mimetype && mimedata
 
-        [Marcel::MimeType.for(Base64.strict_decode64(mimedata), declared_type: mimetype)]
+        data = Base64.strict_decode64(mimedata)
+        {
+          type_declared: mimetype,
+          type_detected: Marcel::MimeType.for(data, declared_type: mimetype),
+          data: data
+        }
+      end
+
+      # FIXME: This method should ONLY return 1 type, remove Array wrapper
+      def datauri2mime(uri)
+        output = decode_datauri(uri)
+        return nil unless output && output[:type_detected]
+
+        [output[:type_detected]]
       end
     end
   end
