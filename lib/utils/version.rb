@@ -1,5 +1,5 @@
 module Metanorma
   module Utils
-    VERSION = "1.4.0.1".freeze
+    VERSION = "1.4.1".freeze
   end
 end
