@@ -125,19 +125,18 @@ module Metanorma
       # sources/plantuml/plantuml20200524-90467-1iqek5i.png
       # already includes localdir
       def datauri(uri, local_dir = ".")
-
         # Return the data URI if it already is a data URI
-        return uri if is_datauri?(uri)
+        return uri if datauri?(uri)
 
         # Return the URL if it is a URL
-        return uri if is_url?(uri)
+        return uri if url?(uri)
 
         local_path = uri
         relative_path = File.join(local_dir, uri)
 
         # Check whether just the local path or the other specified relative path
         # works.
-        path = [ local_path, relative_path ].detect do |p|
+        path = [local_path, relative_path].detect do |p|
           File.exist?(p) ? p : nil
         end
 
@@ -156,19 +155,19 @@ module Metanorma
         type = Marcel::MimeType.for(Pathname.new(path)) ||
           'text/plain; charset="utf-8"'
 
-        bin = File.open(path, "rb").read
+        bin = File.binread(path)
         data = Base64.strict_encode64(bin)
         "data:#{type};base64,#{data}"
-      rescue
+      rescue StandardError
         warn "Data-URI encoding of `#{path}` failed."
         nil
       end
 
-      def is_datauri?(uri)
+      def datauri?(uri)
         /^data:/.match?(uri)
       end
 
-      def is_url?(url)
+      def url?(url)
         %r{^([A-Z]:)?/}.match?(url)
       end
 
@@ -180,7 +179,7 @@ module Metanorma
         {
           type_declared: mimetype,
           type_detected: Marcel::MimeType.for(data, declared_type: mimetype),
-          data: data
+          data: data,
         }
       end
 
