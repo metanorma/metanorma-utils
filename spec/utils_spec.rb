@@ -126,6 +126,23 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
+  it "deals with illegal characters in log" do
+    FileUtils.rm_f("log.txt")
+    log = Metanorma::Utils::Log.new
+    log.add("Category 1", nil, "é\xc2")
+    log.write("log.txt")
+    expect(File.exist?("log.txt")).to be true
+    file = File.read("log.txt", encoding: "utf-8")
+    expect(file).to eq <<~OUTPUT
+      log.txt errors
+
+
+      == Category 1
+
+      (): é�
+    OUTPUT
+  end
+
   it "parses CSV" do
     expect(Metanorma::Utils.csv_split("A;'B;C'")).to eq ["A", "'B", "C'"]
     expect(Metanorma::Utils.csv_split('A;"B;C"')).to eq ["A", "B;C"]

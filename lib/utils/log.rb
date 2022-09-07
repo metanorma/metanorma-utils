@@ -59,6 +59,7 @@ module Metanorma
       def write1(file, entry)
         loc = entry[:location] ? "(#{entry[:location]}): " : ""
         file.puts "#{loc}#{entry[:message]}"
+          .encode("UTF-8", invalid: :replace, undef: :replace)
         entry[:context]&.split(/\n/)&.first(5)&.each do |l|
           file.puts "\t#{l}"
         end
