@@ -1,7 +1,5 @@
-require "asciidoctor"
 require "tempfile"
 require "marcel"
-require "mime/types"
 require "base64"
 
 module Metanorma
@@ -126,35 +124,60 @@ module Metanorma
 
       # sources/plantuml/plantuml20200524-90467-1iqek5i.png
       # already includes localdir
-      def datauri(uri, localdirectory = ".")
-        return uri if /^data:/.match?(uri)
+      def datauri(uri, local_dir = ".")
 
-        path = datauri_path(uri, localdirectory)
-        return path unless File.exist?(path)
+        # Return the data URI if it already is a data URI
+        return uri if is_datauri?(uri)
 
-        types = MIME::Types.type_for(path)
-        type = types ? types.first.to_s : 'text/plain; charset="utf-8"'
-        bin = File.open(path, "rb", &:read)
-        data = Base64.strict_encode64(bin)
-        "data:#{type};base64,#{data}"
-      end
+        # Return the URL if it is a URL
+        return uri if is_url?(uri)
 
-      def datauri_path(uri, localdirectory)
-        path = if %r{^([A-Z]:)?/}.match?(uri) then uri
-               else
-                 File.exist?(uri) ? uri : File.join(localdirectory, uri)
-               end
-        unless File.exist?(path)
-          warn "image at #{path} not found"
+        local_path = uri
+        relative_path = File.join(local_dir, uri)
+
+        # Check whether just the local path or the other specified relative path
+        # works.
+        path = [ local_path, relative_path ].detect do |p|
+          File.exist?(p) ? p : nil
+        end
+
+        unless path && File.exist?(path)
+          warn "Image specified at `#{uri}` does not exist."
+          # Return original provided location
           return uri
         end
-        path
+
+        encode_datauri(path)
+      end
+
+      def encode_datauri(path)
+        return nil unless File.exist?(path)
+
+        type = Marcel::MimeType.for(Pathname.new(path)) ||
+          'text/plain; charset="utf-8"'
+
+        bin = File.open(path, "rb").read
+        data = Base64.strict_encode64(bin)
+        "data:#{type};base64,#{data}"
+      rescue
+        warn "Data-URI encoding of `#{path}` failed."
+        nil
+      end
+
+      def is_datauri?(uri)
+        /^data:/.match?(uri)
+      end
+
+      def is_url?(url)
+        %r{^([A-Z]:)?/}.match?(url)
       end
 
       # FIXME: This method should ONLY return 1 type, remove Array wrapper
       def datauri2mime(uri)
-        %r{^data:image/(?<imgtype>[^;]+);base64,(?<imgdata>.+)$} =~ uri
-        [Marcel::MimeType.for(Base64.strict_decode64(imgdata))]
+        %r{^data:(?<mimetype>[^;]+);base64,(?<mimedata>.+)$} =~ uri
+        return nil unless mimetype && mimedata
+
+        [Marcel::MimeType.for(Base64.strict_decode64(mimedata), declared_type: mimetype)]
       end
     end
   end
