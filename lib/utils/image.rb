@@ -168,7 +168,7 @@ module Metanorma
       end
 
       def url?(url)
-        %r{^([A-Z]:)?/}.match?(url)
+        %r{^[A-Z]{2,}://}i.match?(url)
       end
 
       def decode_datauri(uri)
