@@ -2,6 +2,24 @@ require "spec_helper"
 require "fileutils"
 
 RSpec.describe Metanorma::Utils do
+  it "recognises data uris" do
+    expect(Metanorma::Utils.datauri?("data:img/gif,base64,ABBC"))
+      .to eq true
+    expect(Metanorma::Utils.datauri?("data1:img/gif,base64,ABBC"))
+      .to eq false
+  end
+
+  it "recognises uris" do
+    expect(Metanorma::Utils.url?("mailto://ABC"))
+      .to eq true
+    expect(Metanorma::Utils.url?("http://ABC"))
+      .to eq true
+    expect(Metanorma::Utils.url?("D:/ABC"))
+      .to eq false
+    expect(Metanorma::Utils.url?("/ABC"))
+      .to eq false
+  end
+
   it "rewrites SVGs" do
     FileUtils.cp("spec/fixtures/action_schemaexpg1.svg",
                  "action_schemaexpg1.svg")
