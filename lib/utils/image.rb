@@ -21,7 +21,7 @@ module Metanorma
       end
 
       def save_dataimage(uri)
-        %r{^data:(image|application)/(?<imgtype>[^;]+);(charset=[^;]+;)?base64,(?<imgdata>.+)$} =~ uri
+        %r{^data:(?:image|application)/(?<imgtype>[^;]+);(?:charset=[^;]+;)?base64,(?<imgdata>.+)$} =~ uri
         imgtype.sub!(/\+[a-z0-9]+$/, "") # svg+xml
         imgtype = "png" unless /^[a-z0-9]+$/.match? imgtype
         Tempfile.open(["image", ".#{imgtype}"]) do |f|
@@ -125,25 +125,20 @@ module Metanorma
       # sources/plantuml/plantuml20200524-90467-1iqek5i.png
       # already includes localdir
       def datauri(uri, local_dir = ".")
-        # Return the data URI if it already is a data URI
-        return uri if datauri?(uri)
-
-        # Return the URL if it is a URL
-        return uri if url?(uri)
-
-        local_path = uri
-        relative_path = File.join(local_dir, uri)
+        return uri if datauri?(uri) || url?(uri) || absolute_path?(uri)
 
         # Check whether just the local path or the other specified relative path
         # works.
-        path = [local_path, relative_path].detect do |p|
+        path = [uri, File.join(local_dir, uri)].detect do |p|
           File.exist?(p) ? p : nil
         end
+        datauri1(path)
+      end
 
+      def datauri1(path)
         unless path && File.exist?(path)
           warn "Image specified at `#{uri}` does not exist."
-          # Return original provided location
-          return uri
+          return uri # Return original provided location
         end
 
         encode_datauri(path)
@@ -169,6 +164,10 @@ module Metanorma
 
       def url?(url)
         %r{^[A-Z]{2,}://}i.match?(url)
+      end
+
+      def absolute_path?(uri)
+        %r{^/}.match?(uri) || %r{^[A-Z]:/}.match?(uri)
       end
 
       def decode_datauri(uri)

@@ -20,6 +20,15 @@ RSpec.describe Metanorma::Utils do
       .to eq false
   end
 
+  it "recognises absolute file locations" do
+    expect(Metanorma::Utils.absolute_path?("D:/a.html"))
+      .to eq true
+    expect(Metanorma::Utils.absolute_path?("/a.html"))
+      .to eq true
+    expect(Metanorma::Utils.absolute_path?("a.html"))
+      .to eq false
+  end
+
   it "rewrites SVGs" do
     FileUtils.cp("spec/fixtures/action_schemaexpg1.svg",
                  "action_schemaexpg1.svg")
