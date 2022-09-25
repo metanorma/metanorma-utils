@@ -3,6 +3,7 @@ require "tempfile"
 require "sterile"
 require "htmlentities"
 require "nokogiri"
+require "csv"
 
 module Metanorma
   module Utils

@@ -23,11 +23,10 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "applies Asciidoctor substitutions" do
-    require "metanorma-standoc"
-    expect(Metanorma::Utils.asciidoc_sub("A -- B"))
+    expect(Metanorma::Utils.asciidoc_sub("A -- B", "html"))
       .to eq "A&#8201;&#8212;&#8201;B"
-    expect(Metanorma::Utils.asciidoc_sub("*A* stem:[x]"))
-      .to eq "<strong>A</strong> <stem type=\"AsciiMath\">x</stem>"
+    expect(Metanorma::Utils.asciidoc_sub("*A* stem:[x]", "html"))
+      .to eq "<strong>A</strong> \\$x\\$"
   end
 
   it "finds file path of docfile" do
