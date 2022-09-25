@@ -127,12 +127,13 @@ module Metanorma
       # Check whether just the local path or the other specified relative path
       # works.
       def datauri(uri, local_dir = ".")
-        return uri if datauri?(uri) || url?(uri) || absolute_path?(uri)
+        return uri if datauri?(uri) || url?(uri) # || absolute_path?(uri)
 
         path = [uri, File.join(local_dir, uri)].detect do |p|
           File.exist?(p) ? p : nil
         end
-        unless path && File.exist?(path)
+
+        unless path
           warn "Image specified at `#{uri}` does not exist."
           return uri # Return original provided location
         end

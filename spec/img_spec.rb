@@ -2,6 +2,39 @@ require "spec_helper"
 require "fileutils"
 
 RSpec.describe Metanorma::Utils do
+
+  context "recognises data uris" do
+    it "where the content is an existing file at a relative path" do
+      expect(Metanorma::Utils.datauri("spec/fixtures/rice_image1.png"))
+        .to eq Metanorma::Utils.encode_datauri('spec/fixtures/rice_image1.png')
+    end
+
+    it "where the content is an existing file at an absolute path" do
+      expect(Metanorma::Utils.datauri(File.expand_path("spec/fixtures/rice_image1.png")))
+        .to eq Metanorma::Utils.encode_datauri('spec/fixtures/rice_image1.png')
+    end
+
+    it "where the content is a relative file path pointing to a bogus file" do
+      expect(Metanorma::Utils.datauri("spec/fixtures/bogus.png"))
+        .to eq "spec/fixtures/bogus.png"
+    end
+
+    it "where the content is an absolute file path pointing to a bogus file" do
+      expect(Metanorma::Utils.datauri("D:/spec/fixtures/bogus.png"))
+        .to eq "D:/spec/fixtures/bogus.png"
+    end
+
+    it "where the content is a data/image URI" do
+      expect(Metanorma::Utils.datauri("data1:img/gif,base64,ABBC"))
+        .to eq "data1:img/gif,base64,ABBC"
+    end
+
+    it "where the content is an URL" do
+      expect(Metanorma::Utils.datauri("https://example.com/image.png"))
+        .to eq "https://example.com/image.png"
+    end
+  end
+
   it "recognises data uris" do
     expect(Metanorma::Utils.datauri?("data:img/gif,base64,ABBC"))
       .to eq true
