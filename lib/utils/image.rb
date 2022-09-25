@@ -129,7 +129,8 @@ module Metanorma
       def datauri(uri, local_dir = ".")
         return uri if datauri?(uri) || url?(uri)
 
-        path = [uri, File.join(local_dir, uri)].detect do |p|
+options = absolute_path?(uri) ? [uri] : [uri, File.join(local_dir, uri)]
+        path = options.detect do |p|
           File.exist?(p) ? p : nil
         end
 
