@@ -34,6 +34,12 @@ RSpec.describe Metanorma::Utils do
     expect(out).to be_equivalent_to <<~OUTPUT
       &lt;A&gt; 
     OUTPUT
+    out = Metanorma::Utils.noko_html do |xml|
+      xml << doc.blocks.first.content
+    end.join
+    expect(out).to be_equivalent_to <<~OUTPUT
+      &lt;A&gt; 
+    OUTPUT
   end
 
   it "wraps an Asciidoctor node in paragraph" do
@@ -69,7 +75,14 @@ RSpec.describe Metanorma::Utils do
 
   it "applies namespace to xpath" do
     expect(Metanorma::Utils.ns("//ab/Bb/c1-d[ancestor::c][d = 'x'][e/f]"))
-      .to be_equivalent_to("//xmlns:ab/xmlns:Bb/xmlns:c1-d[ancestor::xmlns:c]"\
+      .to be_equivalent_to("//xmlns:ab/xmlns:Bb/xmlns:c1-d[ancestor::xmlns:c]" \
                            "[xmlns:d = 'x'][xmlns:e/xmlns:f]")
+  end
+
+  it "converts HTML escapes to hex" do
+    expect(Metanorma::Utils.numeric_escapes("A&eacute;B"))
+      .to be_equivalent_to "A&#xe9;B"
+    expect(Metanorma::Utils.numeric_escapes("A<X>&eacute;</X>B"))
+      .to be_equivalent_to "A<X>&#xe9;</X>B"
   end
 end
