@@ -86,6 +86,13 @@ module Metanorma
           end
         end.join
       end
+
+      # all element/attribute pairs that are ID anchors in Metanorma
+      def anchor_attributes
+        [%w[* id], %w[* bibitemid], %w[review from],
+         %w[review to], %w[index to], %w[xref target],
+         %w[callout target]]
+      end
     end
   end
 end
