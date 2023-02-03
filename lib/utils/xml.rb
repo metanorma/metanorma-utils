@@ -58,7 +58,7 @@ module Metanorma
         doc = ::Nokogiri::XML.parse(NOKOHEAD)
         fragment = doc.fragment("")
         ::Nokogiri::XML::Builder.with fragment, &block
-        fragment.to_xml(encoding: "US-ASCII", indent: 0,
+        fragment.to_xml(encoding: "UTF-8", indent: 0,
                         save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
           .lines.map do |l|
           l.gsub(/\s*\n/, "")
