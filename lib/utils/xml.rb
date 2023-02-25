@@ -91,7 +91,7 @@ module Metanorma
       def anchor_attributes
         [%w[* id], %w[* bibitemid], %w[review from],
          %w[review to], %w[index to], %w[xref target],
-         %w[callout target]]
+         %w[callout target], %w[location target]]
       end
     end
   end
