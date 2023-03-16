@@ -73,6 +73,30 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
+  it "deals with eoln in different scripts" do
+    input = <<~'EOS'
+      A
+      B
+    EOS
+
+    doc = (Asciidoctor::Document.new input.lines,
+                                      { standalone: false }).parse
+
+    out = Metanorma::Utils.noko do |xml|
+      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
+    end.join
+    expect(out).to be_equivalent_to <<~OUTPUT
+      <p>A B</p>
+    OUTPUT
+    out = Metanorma::Utils.noko("Hans") do |xml|
+      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
+    end.join
+    expect(out).to be_equivalent_to <<~OUTPUT
+      <p>AB</p>
+    OUTPUT
+  end
+
+
   it "applies namespace to xpath" do
     expect(Metanorma::Utils.ns("//ab/Bb/c1-d[ancestor::c][d = 'x'][e/f]"))
       .to be_equivalent_to("//xmlns:ab/xmlns:Bb/xmlns:c1-d[ancestor::xmlns:c]" \
