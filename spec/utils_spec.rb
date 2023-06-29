@@ -50,7 +50,7 @@ RSpec.describe Metanorma::Utils do
     INPUT
     Metanorma::Utils.endash_date(a)
     expect(a.to_xml).to be_equivalent_to <<~OUTPUT
-          <?xml version=\"1.0\"?>
+          <?xml version="1.0"?>
       <container><a>A&#x2013;B A&#x2013;B</a><b>A&#x2013;B</b></container>
     OUTPUT
   end
@@ -139,6 +139,34 @@ RSpec.describe Metanorma::Utils do
       == Category 1
 
       (): é�
+    OUTPUT
+  end
+
+  it "deals with Mathml in log" do
+    xml = Nokogiri::XML(<<~INPUT)
+      <xml>
+      <a>
+      The number is <stem>
+      <MathML xmlns="b">1</MathML>
+      <latexmath>\\1</latexmath>
+      </stem></a></xml>
+    INPUT
+    FileUtils.rm_f("log.txt")
+    log = Metanorma::Utils::Log.new
+    log.add("Category 2", xml.at("//xml/a"), "Message 3")
+    log.write("log.txt")
+    expect(File.exist?("log.txt")).to be true
+    file = File.read("log.txt", encoding: "utf-8")
+    expect(file).to be_equivalent_to <<~OUTPUT
+      log.txt errors
+
+
+      == Category 2
+
+
+      (XML Line 000002): Message 3
+      <a>
+      The number is <latexmath>\\1</latexmath></a>
     OUTPUT
   end
 

@@ -37,11 +37,21 @@ module Metanorma
       end
 
       def context(node)
-        return nil if node.is_a? String
-
-        node.respond_to?(:to_xml) and return node.to_xml
+        node.is_a? String and return nil
+        node.respond_to?(:to_xml) and return human_readable_xml(node)
         node.respond_to?(:to_s) and return node.to_s
         nil
+      end
+
+      # try to approximate input, at least for maths
+      def human_readable_xml(node)
+        ret = node.dup
+        ret.xpath(".//*[local-name() = 'stem']").each do |s|
+          sub = s.at("./*[local-name() = 'asciimath'] | " \
+                     "./*[local-name() = 'latexmath']")
+          sub and s.replace(sub)
+        end
+        ret.to_xml
       end
 
       def write(file)
