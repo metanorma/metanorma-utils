@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
     f.match(%r{^(test|spec|features|bin|.github)/}) \
     || f.match(%r{Rakefile|bin/rspec})
   end
-  spec.test_files    = `git ls-files -- {spec}/*`.split("\n")
   spec.required_ruby_version = Gem::Requirement.new(">= 2.7.0")
 
   spec.add_dependency "asciidoctor", ">= 2"
@@ -37,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "sterile", "~> 1.0.14"
   spec.add_dependency "uuidtools"
 
+  spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "debug"
   spec.add_development_dependency "equivalent-xml", "~> 0.6"
   spec.add_development_dependency "guard", "~> 2.14"
@@ -48,4 +48,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "timecop", "~> 0.9"
   spec.add_development_dependency "vcr", "~> 6.1.0"
   spec.add_development_dependency "webmock"
+  spec.metadata["rubygems_mfa_required"] = "true"
 end
