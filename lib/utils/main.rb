@@ -17,9 +17,8 @@ module Metanorma
       # , " => ," : CSV definition does not deal with space followed by quote
       # at start of field
       def csv_split(text, delim = ";")
-        return if text.nil?
-
-        CSV.parse_line(text&.gsub(/#{delim} "(?!")/, "#{delim}\""),
+        text.nil? || text.empty? and return []
+        CSV.parse_line(text.gsub(/#{delim} "(?!")/, "#{delim}\""),
                        liberal_parsing: true,
                        col_sep: delim)&.compact&.map(&:strip)
       end
@@ -55,7 +54,7 @@ module Metanorma
         HTMLEntities.new.encode(
           HTMLEntities.new.decode(
             text.gsub(/ --? /, "&#8201;&#8212;&#8201;")
-            .gsub(/--/, "&#8212;"),
+            .gsub("--", "&#8212;"),
           )
             .smart_format, :basic
         )
@@ -65,7 +64,7 @@ module Metanorma
         elem.traverse do |n|
           next unless n.text?
 
-          n.replace(n.text.gsub(/\s+--?\s+/, "&#8211;").gsub(/--/, "&#8211;"))
+          n.replace(n.text.gsub(/\s+--?\s+/, "&#8211;").gsub("--", "&#8211;"))
         end
       end
 
