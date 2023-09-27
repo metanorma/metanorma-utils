@@ -44,7 +44,8 @@ module Metanorma
       end
 
       def svgmap_rewrite0(svgmap, namespace, localdirectory, idx)
-        if (i = svgmap.at(namespace.ns(".//image"))) && (src = i["src"])
+        if (i = svgmap.at(namespace.ns(".//image"))) &&
+            (src = i["src"]) && !src.empty?
           path = svgmap_rewrite0_path(src, localdirectory)
           File.file?(path) or return false
           svg = Nokogiri::XML(File.read(path, encoding: "utf-8"))
