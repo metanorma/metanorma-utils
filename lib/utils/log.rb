@@ -1,30 +1,58 @@
+require "htmlentities"
+
 module Metanorma
   module Utils
     class Log
+      attr_writer :xml
+
       def initialize
         @log = {}
+        @xml = nil
+        @c = HTMLEntities.new
+        @mapid = {}
       end
 
       def add(category, loc, msg)
-        return if @novalid
-
-        @log[category] = [] unless @log[category]
-        @log[category] << { location: current_location(loc), message: msg,
-                            context: context(loc) }
+        @novalid and return
+        @log[category] ||= []
+        item = create_entry(loc, msg)
+        @log[category] << item
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
         warn "#{category}: #{loc}#{msg}"
       end
 
+      def create_entry(loc, msg)
+        msg = msg.encode("UTF-8", invalid: :replace, undef: :replace)
+        item = { location: current_location(loc),
+                 message: msg, context: context(loc), line: line(loc, msg) }
+        if item[:message].include?(" :: ")
+          a = item[:message].split(" :: ", 2)
+          item[:context] = a[1]
+          item[:message] = a[0]
+        end
+        item
+      end
+
       def current_location(node)
         if node.nil? then ""
+        elsif node.respond_to?(:id) && !node.id.nil? then "ID #{node.id}"
+        elsif node.respond_to?(:id) && node.id.nil? && node.respond_to?(:parent)
+          while !node.nil? && node.id.nil?
+            node = node.parent
+          end
+          node.nil? ? "" : "ID #{node.id}"
+        elsif node.respond_to?(:to_xml) && node.respond_to?(:parent)
+          while !node.nil? && node["id"].nil? && node.respond_to?(:parent)
+            node = node.parent
+          end
+          node.respond_to?(:parent) ? "ID #{node['id']}" : ""
         elsif node.is_a? String then node
         elsif node.respond_to?(:lineno) && !node.lineno.nil? &&
             !node.lineno.empty?
           "Asciidoctor Line #{'%06d' % node.lineno}"
         elsif node.respond_to?(:line) && !node.line.nil?
           "XML Line #{'%06d' % node.line}"
-        elsif node.respond_to?(:id) && !node.id.nil? then "ID #{node.id}"
-        else
+        elsif node.respond_to?(:parent)
           while !node.nil? &&
               (!node.respond_to?(:level) || node.level.positive?) &&
               (!node.respond_to?(:context) || node.context != :section)
@@ -33,6 +61,17 @@ module Metanorma
               node&.context == :section
           end
           "??"
+        else "??"
+        end
+      end
+
+      def line(node, msg)
+        if node.respond_to?(:line) && !node.line.nil?
+          "#{'%06d' % node.line}"
+        elsif /^XML Line /.match?(msg)
+          msg.sub(/^XML Line /, "").sub(/:.*$/, "")
+        else
+          "000000"
         end
       end
 
@@ -54,25 +93,68 @@ module Metanorma
         ret.to_xml
       end
 
+      def log_hdr(file)
+        <<~HTML
+          <html><head><title>#{file} errors</title>
+          <style> pre { white-space: pre-wrap; } </style>
+          </head><body><h1>#{file} errors</h1>
+        HTML
+      end
+
       def write(file)
+        @filename = file.sub(".err.html", ".html")
         File.open(file, "w:UTF-8") do |f|
-          f.puts "#{file} errors"
-          @log.each_key do |key|
-            f.puts "\n\n== #{key}\n\n"
-            @log[key].sort_by { |a| a[:location] }.each do |n|
-              write1(f, n)
-            end
-          end
+          f.puts log_hdr(file)
+          @log.each_key { |key| write_key(f, key) }
+          f.puts "</body></html>\n"
         end
       end
 
-      def write1(file, entry)
-        loc = entry[:location] ? "(#{entry[:location]}): " : ""
-        file.puts "#{loc}#{entry[:message]}"
-          .encode("UTF-8", invalid: :replace, undef: :replace)
-        entry[:context]&.split(/\n/)&.first(5)&.each do |l|
-          file.puts "\t#{l}"
+      def write_key(file, key)
+        file.puts <<~HTML
+          <h2>#{key}</h2>\n<table border="1">
+          <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+          <tbody>
+        HTML
+        @log[key].sort_by { |a| [a[:line], a[:location], a[:message]] }
+          .each do |n|
+          write1(file, n)
         end
+        file.puts "</tbody></table>\n"
+      end
+
+      def write1(file, entry)
+        line = entry[:line]
+        line = nil if line == "000000"
+        loc = loc_link(entry)
+        msg = entry[:message].gsub(/`([^`]+)`/, "<code>\\1</code>")
+        entry[:context] and context = entry[:context].split("\n").first(5)
+          .join("\n").gsub("><", "> <")
+        write_entry(file, line, loc, msg, context)
+      end
+
+      def mapid(old, new)
+        @mapid[old] = new
+      end
+
+      def loc_link(entry)
+        loc = entry[:location]
+        loc.nil? || loc.empty? and loc = "--"
+        if /^ID /.match?(entry[:location])
+          id = entry[:location].sub(/^ID /, "")
+          id = @mapid[id] while @mapid[id]
+          url = "#{@filename}##{id}"
+          loc = id
+        end
+        url and loc = "<a href='#{url}'>#{loc}</a>"
+        loc
+      end
+
+      def write_entry(file, line, loc, msg, context)
+        context &&= @c.encode(context)
+        file.print <<~HTML
+          <tr><td>#{line}</td><th><code>#{loc}</code></th><td>#{msg}</td><td><pre>#{context}</pre></td></tr>
+        HTML
       end
     end
   end

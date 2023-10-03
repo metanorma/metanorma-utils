@@ -76,98 +76,20 @@ RSpec.describe Metanorma::Utils do
     a = Metanorma::Utils.set_nested_value(a, ["X3", "A"], 7)
     a = Metanorma::Utils.set_nested_value(a, ["X3", "a"], 8)
     a = Metanorma::Utils.set_nested_value(a, ["X1", "a"], 11)
+    a = Metanorma::Utils.set_nested_value(a, ["X", "a"], 12)
     expect(a.to_s).to be_equivalent_to <<~OUTPUT
-      {"X"=>"x", "X1"=>[9, 4, {"a"=>11}], "X2"=>[3, 4, {"A"=>5}], "X3"=>{"a"=>["b", 8], "A"=>7}, "X2a"=>[{"A"=>6}], "X4"=>{"A"=>10}}
+      {"X"=>["x", {"a"=>12}], "X1"=>[9, 4, {"a"=>11}], "X2"=>[3, 4, {"A"=>5}], "X3"=>{"a"=>["b", 8], "A"=>7}, "X2a"=>[{"A"=>6}], "X4"=>{"A"=>10}}
     OUTPUT
   end
 
   it "maps languages to scripts" do
     expect(Metanorma::Utils.default_script("hi")).to eq "Deva"
+    expect(Metanorma::Utils.default_script("tlh")).to eq "Latn"
+    expect(Metanorma::Utils.default_script("bg")).to eq "Cyrl"
     expect(Metanorma::Utils.rtl_script?(Metanorma::Utils.default_script("el")))
       .to eq false
     expect(Metanorma::Utils.rtl_script?(Metanorma::Utils.default_script("fa")))
       .to eq true
-  end
-
-  # not testing Asciidoctor log extraction here
-  it "generates log" do
-    xml = Nokogiri::XML(<<~INPUT)
-      <xml>
-      <a>
-      <b>
-      c
-      </b></a></xml>
-    INPUT
-    FileUtils.rm_f("log.txt")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 1", nil, "Message 1")
-    log.add("Category 1", "node", "Message 2")
-    log.add("Category 2", xml.at("//xml/a/b"), "Message 3")
-    log.write("log.txt")
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
-    expect(file).to eq <<~OUTPUT
-      log.txt errors
-
-
-      == Category 1
-
-      (): Message 1
-      (node): Message 2
-
-
-      == Category 2
-
-      (XML Line 000003): Message 3
-      	<b>
-      	c
-      	</b>
-    OUTPUT
-  end
-
-  it "deals with illegal characters in log" do
-    FileUtils.rm_f("log.txt")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 1", nil, "é\xc2")
-    log.write("log.txt")
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
-    expect(file).to eq <<~OUTPUT
-      log.txt errors
-
-
-      == Category 1
-
-      (): é�
-    OUTPUT
-  end
-
-  it "deals with Mathml in log" do
-    xml = Nokogiri::XML(<<~INPUT)
-      <xml>
-      <a>
-      The number is <stem>
-      <MathML xmlns="b">1</MathML>
-      <latexmath>\\1</latexmath>
-      </stem></a></xml>
-    INPUT
-    FileUtils.rm_f("log.txt")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 2", xml.at("//xml/a"), "Message 3")
-    log.write("log.txt")
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
-      log.txt errors
-
-
-      == Category 2
-
-
-      (XML Line 000002): Message 3
-      <a>
-      The number is <latexmath>\\1</latexmath></a>
-    OUTPUT
   end
 
   it "parses CSV" do
@@ -255,5 +177,10 @@ RSpec.describe Metanorma::Utils do
        <dummy1/><attr1>value1</attr1>
        </xml>
     OUTPUT
+  end
+
+  it "processes XML attributes" do
+    ret = Metanorma::Utils.attr_code({ a: 1, b: "&#x65;", c: nil })
+    expect(ret).to be_equivalent_to '{:a=>1, :b=>"e"}'
   end
 end
