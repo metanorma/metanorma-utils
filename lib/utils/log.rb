@@ -126,7 +126,8 @@ module Metanorma
         line = entry[:line]
         line = nil if line == "000000"
         loc = loc_link(entry)
-        msg = entry[:message].gsub(/`([^`]+)`/, "<code>\\1</code>")
+        msg = break_up_long_str(entry[:message])
+          .gsub(/`([^`]+)`/, "<code>\\1</code>")
         entry[:context] and context = entry[:context].split("\n").first(5)
           .join("\n").gsub("><", "> <")
         write_entry(file, line, loc, msg, context)
@@ -139,18 +140,23 @@ module Metanorma
       def loc_link(entry)
         loc = entry[:location]
         loc.nil? || loc.empty? and loc = "--"
-        if /^ID /.match?(entry[:location])
-          id = entry[:location].sub(/^ID /, "")
-          id = @mapid[id] while @mapid[id]
-          url = "#{@filename}##{id}"
-          loc = id
+        if /^ID /.match?(loc)
+          loc.sub!(/^ID /, "")
+          loc = @mapid[loc] while @mapid[loc]
+          url = "#{@filename}##{loc}"
         end
+        loc &&= break_up_long_str loc
         url and loc = "<a href='#{url}'>#{loc}</a>"
         loc
       end
 
+      def break_up_long_str(str)
+        Metanorma::Utils.break_up_long_str(str)
+      end
+
       def write_entry(file, line, loc, msg, context)
-        context &&= @c.encode(context)
+        #context &&= @c.encode(break_up_long_str(context))
+        context &&= @c.encode((context))
         file.print <<~HTML
           <tr><td>#{line}</td><th><code>#{loc}</code></th><td>#{msg}</td><td><pre>#{context}</pre></td></tr>
         HTML

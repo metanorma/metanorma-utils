@@ -21,8 +21,15 @@ module Metanorma
     HERE
 
     class << self
+      def attr_code(attributes)
+        attributes.compact.transform_values do |v|
+          v.is_a?(String) ? HTMLEntities.new.decode(v) : v
+        end
+      end
+
       def to_ncname(tag, asciionly: true)
-        asciionly and tag = HTMLEntities.new.encode(tag, :basic, :hexadecimal)
+        asciionly and tag = HTMLEntities.new.encode(tag, :basic,
+                                                    :hexadecimal)
         start = tag[0]
         ret1 = if %r([#{NAMECHAR}#])o.match?(start)
                  "_"
@@ -88,11 +95,45 @@ module Metanorma
         end.join
       end
 
+      # if the contents of node are blocks, output them to out;
+      # else, wrap them in <p>
+      def wrap_in_para(node, out)
+        if node.blocks? then out << node.content
+        else
+          out.p { |p| p << node.content }
+        end
+      end
+
       # all element/attribute pairs that are ID anchors in Metanorma
       def anchor_attributes
         [%w[* id], %w[* bibitemid], %w[review from],
          %w[review to], %w[index to], %w[xref target],
          %w[callout target], %w[location target]]
+      end
+
+      # convert definition list term/value pair into Nokogiri XML attribute
+      def dl_to_attrs(elem, dlist, name)
+        e = dlist.at("./dt[text()='#{name}']") or return
+        val = e.at("./following::dd/p") || e.at("./following::dd") or return
+        elem[name] = val.text
+      end
+
+      # convert definition list term/value pairs into Nokogiri XML elements
+      def dl_to_elems(ins, elem, dlist, name)
+        a = elem.at("./#{name}[last()]")
+        ins = a if a
+        dlist.xpath("./dt[text()='#{name}']").each do |e|
+          ins = dl_to_elems1(e, name, ins)
+        end
+        ins
+      end
+
+      def dl_to_elems1(term, name, ins)
+        v = term.at("./following::dd")
+        e = v.elements and e.size == 1 && e.first.name == "p" and v = e.first
+        v.name = name
+        ins.next = v
+        ins.next
       end
     end
   end

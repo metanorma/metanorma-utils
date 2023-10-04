@@ -183,4 +183,45 @@ RSpec.describe Metanorma::Utils do
     ret = Metanorma::Utils.attr_code({ a: 1, b: "&#x65;", c: nil })
     expect(ret).to be_equivalent_to '{:a=>1, :b=>"e"}'
   end
+
+  it "breaks up long strings" do
+    expect(break_up_test("http://www.example.com/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/BBBBBBBBBBBBBBBBBBBBBBBBBBBB"))
+      .to eq "http://&#x200b;www.example.&#x200b;com/&#x200b;AAAAAAAAAAAAAAAAA&#xad;AAAAAAAAAAAAAAAAAAAA&#xad;AAAAAAAA/&#x200b;BBBBBBBBBBB&#xad;BBBBBBBBBBBBBBBBB"
+    expect(break_up_test("http://www.example.com/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBB"))
+      .to eq "http://&#x200b;www.example.&#x200b;com/&#x200b;AAAAAAAAAAAAAAAAA&#xad;AAAAAAAAAAAAAAAAAAAA&#xad;AAAAAAAABBBBBBBBBBBB&#xad;BBBBBBBBBBBBBBBB"
+    expect(break_up_test("www.example.com/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBB"))
+      .to eq "www.&#x200b;example.com/&#x200b;AAAAAAAAAAAAAAAAAAAAAAAA&#xad;AAAAAAAAAAAAAAAAAAAA&#xad;ABBBBBBBBBBBBBBBBBBB&#xad;BBBBBBBBB"
+    expect(break_up_test("aaaaaaaa_aa"))
+      .to eq "aaaaaaaa_&#x200b;aa"
+    expect(break_up_test("aaaaaaaa.aa"))
+      .to eq "aaaaaaaa.&#x200b;aa"
+    expect(break_up_test("aaaaaaaa.0a"))
+      .to eq "aaaaaaaa.0a"
+    expect(break_up_test("aaaaaaaa<a>a"))
+      .to eq "aaaaaaaa&#x200b;&#x3c;a&#x3e;a"
+    expect(break_up_test("aaaaaaaa<<a>>a"))
+      .to eq "aaaaaaaa&#x200b;&#x3c;&#x3c;a&#x3e;&#x3e;a"
+    expect(break_up_test("aaaaaaaa/aa"))
+      .to eq "aaaaaaaa/&#x200b;aa"
+    expect(break_up_test("aaaaaaaa//aa"))
+      .to eq "aaaaaaaa//&#x200b;aa"
+    expect(break_up_test("aaaaaaaa+aa"))
+      .to eq "aaaaaaaa+&#x200b;aa"
+    expect(break_up_test("aaaaaaaa+0a"))
+      .to eq "aaaaaaaa+&#x200b;0a"
+    expect(break_up_test("aaaaaaaa{aa"))
+      .to eq "aaaaaaaa&#x200b;{aa"
+    expect(break_up_test("aaaaaaaa;{aa"))
+      .to eq "aaaaaaaa;&#x200b;{aa"
+    expect(break_up_test("aaaaaaaa(aa"))
+      .to eq "aaaaaaaa&#x200b;(aa"
+    expect(break_up_test("aaaaaaaa(0a"))
+      .to eq "aaaaaaaa(0a"
+    expect(break_up_test("aaaaaaa0(aa"))
+      .to eq "aaaaaaa0(aa"
+    expect(break_up_test("aaaaaaaAaaaa"))
+      .to eq "aaaaaaa&#xad;Aaaaa"
+    expect(break_up_test("aaaaaaaAAaaa"))
+      .to eq "aaaaaaaAAaaa"
+  end
 end

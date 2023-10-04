@@ -8,12 +8,6 @@ require "csv"
 module Metanorma
   module Utils
     class << self
-      def attr_code(attributes)
-        attributes.compact.transform_values do |v|
-          v.is_a?(String) ? HTMLEntities.new.decode(v) : v
-        end
-      end
-
       # , " => ," : CSV definition does not deal with space followed by quote
       # at start of field
       def csv_split(text, delim = ";")
@@ -21,15 +15,6 @@ module Metanorma
         CSV.parse_line(text.gsub(/#{delim} "(?!")/, "#{delim}\""),
                        liberal_parsing: true,
                        col_sep: delim)&.compact&.map(&:strip)
-      end
-
-      # if the contents of node are blocks, output them to out;
-      # else, wrap them in <p>
-      def wrap_in_para(node, out)
-        if node.blocks? then out << node.content
-        else
-          out.p { |p| p << node.content }
-        end
       end
 
       def asciidoc_sub(text, flavour = :standoc)
@@ -141,29 +126,60 @@ module Metanorma
         %w(Arab Aran Hebr).include? script
       end
 
-      # convert definition list term/value pair into Nokogiri XML attribute
-      def dl_to_attrs(elem, dlist, name)
-        e = dlist.at("./dt[text()='#{name}']") or return
-        val = e.at("./following::dd/p") || e.at("./following::dd") or return
-        elem[name] = val.text
+      LONGSTR_THRESHOLD = 10
+      LONGSTR_NOPUNCT = 2
+
+      def break_up_long_str(text)
+        /^\s*$/.match?(text) and return text
+        text.split(/(?=\s)/).map do |w|
+          if /^\s*$/.match(text) || (w.size < LONGSTR_THRESHOLD) then w
+          else
+            w.scan(/.{,#{LONGSTR_THRESHOLD}}/o).map.with_index do |w1, i|
+              w1.size < LONGSTR_THRESHOLD ? w1 : break_up_long_str1(w1, i + 1)
+            end.join
+          end
+        end.join
       end
 
-      # convert definition list term/value pairs into Nokogiri XML elements
-      def dl_to_elems(ins, elem, dlist, name)
-        a = elem.at("./#{name}[last()]")
-        ins = a if a
-        dlist.xpath("./dt[text()='#{name}']").each do |e|
-          ins = dl_to_elems1(e, name, ins)
+      STR_BREAKUP_RE = %r{
+       (?<=[=_—–\u2009→?+;]) | # break after any of these
+       (?<=[,.:])(?!\d) | # break on punct only if not preceding digit
+       (?<=[>])(?![>]) | # > not >->
+       (?<=[\]])(?![\]]) | # ] not ]-]
+       (?<=//) | # //
+       (?<=[/])(?![/]) | # / not /-/
+       (?<![<])(?=[<]) | # < not <-<
+       (?<=\p{L})(?=[(\{\[]\p{L}) # letter and bracket, followed by letter
+      }x.freeze
+
+      CAMEL_CASE_RE = %r{
+        (?<=\p{Ll}\p{Ll})(?=\p{Lu}\p{Ll}\p{Ll}) # 2 lowerc / upperc, 2 lowerc
+      }x.freeze
+
+      # break on punct every LONGSTRING_THRESHOLD chars, with zero width space
+      # if punct fails, try break on camel case, with soft hyphen
+      # break regardless every LONGSTRING_THRESHOLD * LONGSTR_NOPUNCT,
+      # with soft hyphen
+      def break_up_long_str1(text, iteration)
+        s, separator = break_up_long_str2(text)
+        if s.size == 1 # could not break up
+          (iteration % LONGSTR_NOPUNCT).zero? and
+            text += "\u00ad" # force soft hyphen
+          text
+        else
+          s[-1] = "#{separator}#{s[-1]}"
+          s.join
         end
-        ins
       end
 
-      def dl_to_elems1(term, name, ins)
-        v = term.at("./following::dd")
-        e = v.elements and e.size == 1 && e.first.name == "p" and v = e.first
-        v.name = name
-        ins.next = v
-        ins.next
+      def break_up_long_str2(text)
+        s = text.split(STR_BREAKUP_RE, -1)
+        separator = "\u200b"
+        if s.size == 1
+          s = text.split(CAMEL_CASE_RE)
+          separator = "\u00ad"
+        end
+        [s, separator]
       end
     end
   end

@@ -74,40 +74,40 @@ RSpec.describe Metanorma::Utils do
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
       <table border="1">
-      <thead><th width="10%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="40%">Context</th></thead>
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
-      <tr><th></th><th>--</th><td>Message 1</td><td><pre></pre></td></tr>
-      <tr><th></th><th>node</th><td>Message 2</td><td><pre></pre></td></tr>
+      <tr><td></td><th><code>--</code></th><td>Message 1</td><td><pre></pre></td></tr>
+      <tr><td></td><th><code>node</code></th><td>Message 2</td><td><pre></pre></td></tr>
       </tbody></table>
       <h2>Category 2</h2>
       <table border="1">
-      <thead><th width="10%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="40%">Context</th></thead>
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
-      <tr><th>000002</th><th>--</th><td>Message 4</td><td><pre>&lt;a&gt;
+      <tr><td>000002</td><th><code>--</code></th><td>Message 4</td><td><pre>&lt;a&gt;
       &lt;b id=&quot;xyz&quot;&gt;
       c
       &lt;/b&gt; &lt;/a&gt;</pre></td></tr>
-      <tr><th>000002</th><th>--</th><td>Message 5</td><td><pre>Context</pre></td></tr>
-      <tr><th>000003</th><th><a href='log.txt#def'>ID def</a></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
+      <tr><td>000002</td><th><code>--</code></th><td>Message 5</td><td><pre>Context</pre></td></tr>
+      <tr><td>000003</td><th><code><a href='log.txt#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
       c
       &lt;/b&gt;</pre></td></tr>
       </tbody></table>
       <h2>Category 3</h2>
       <table border="1">
-      <thead><th width="10%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="40%">Context</th></thead>
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
-      <tr><th></th><th>--</th><td>Message 6.1</td><td><pre>ID: </pre></td></tr>
-      <tr><th></th><th>--</th><td>Message 6.3</td><td><pre>ID: </pre></td></tr>
-      <tr><th></th><th><a href='log.txt#B'>ID B</a></th><td>Message 6.2</td><td><pre>ID: B</pre></td></tr>
+      <tr><td></td><th><code>--</code></th><td>Message 6.1</td><td><pre>ID: </pre></td></tr>
+      <tr><td></td><th><code>--</code></th><td>Message 6.3</td><td><pre>ID: </pre></td></tr>
+      <tr><td></td><th><code><a href='log.txt#B'>B</a></code></th><td>Message 6.2</td><td><pre>ID: B</pre></td></tr>
       </tbody></table>
       <h2>Category 4</h2>
       <table border="1">
-      <thead><th width="10%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="40%">Context</th></thead>
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
-      <tr><th></th><th>??</th><td>Message 7.2</td><td><pre>Line: </pre></td></tr>
-      <tr><th></th><th>??</th><td>Message 7.4</td><td><pre>Line: </pre></td></tr>
-      <tr><th>000013</th><th>XML Line 000013</th><td>Message 7.3</td><td><pre>Line: 13</pre></td></tr>
-      <tr><th>1212</th><th>Asciidoctor Line 000012</th><td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td></tr>
+      <tr><td></td><th><code>??</code></th><td>Message 7.2</td><td><pre>Line: </pre></td></tr>
+      <tr><td></td><th><code>??</code></th><td>Message 7.4</td><td><pre>Line: </pre></td></tr>
+      <tr><td>000013</td><th><code>XML Line 000013</code></th><td>Message 7.3</td><td><pre>Line: 13</pre></td></tr>
+      <tr><td>1212</td><th><code>Asciidoctor Line 000012</code></th><td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
@@ -126,9 +126,30 @@ RSpec.describe Metanorma::Utils do
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
       <table border="1">
-      <thead><th width="10%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="40%">Context</th></thead>
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
-      <tr><th></th><th>--</th><td>é�</td><td><pre></pre></td></tr>
+      <tr><td></td><th><code>--</code></th><td>é�</td><td><pre></pre></td></tr>
+      </tbody></table>
+      </body></html>
+    OUTPUT
+  end
+
+  it "deals with long strings in log" do
+    FileUtils.rm_f("log.txt")
+    log = Metanorma::Utils::Log.new
+    log.add("Category 1", "ID AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+    log.write("log.txt")
+    expect(File.exist?("log.txt")).to be true
+    file = File.read("log.txt", encoding: "utf-8")
+    expect(file).to eq <<~OUTPUT
+      <html><head><title>log.txt errors</title>
+      <style> pre { white-space: pre-wrap; } </style>
+      </head><body><h1>log.txt errors</h1>
+      <h2>Category 1</h2>
+      <table border="1">
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      <tbody>
+      <tr><td></td><th><code><a href='log.txt#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'>AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA</a></code></th><td>BBBBBBBBBBBBBBBBBBBB­BBBBBBBBBBBBBBBBBBBB­BBBBBBBB</td><td><pre></pre></td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
@@ -155,9 +176,9 @@ RSpec.describe Metanorma::Utils do
       </head><body><h1>log.txt errors</h1>
       <h2>Category 2</h2>
       <table border="1">
-      <thead><th width="10%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="40%">Context</th></thead>
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
-      <tr><th>000002</th><th>--</th><td>Message 3</td><td><pre>&lt;a&gt;
+      <tr><td>000002</td><th><code>--</code></th><td>Message 3</td><td><pre>&lt;a&gt;
       The number is &lt;latexmath&gt;\\1&lt;/latexmath&gt; &lt;/a&gt;</pre></td></tr>
       </tbody></table>
       </body></html>

@@ -45,3 +45,8 @@ def xmlpp(xml)
   Nokogiri::XSLT(xsl).transform(Nokogiri::XML(xml, &:noblanks))
     .to_xml(indent: 2, encoding: "UTF-8")
 end
+
+def break_up_test(str)
+  HTMLEntities.new.encode(Metanorma::Utils
+        .break_up_long_str(str), :hexadecimal)
+end
