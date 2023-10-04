@@ -84,11 +84,11 @@ RSpec.describe Metanorma::Utils do
       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
       <tr><td>000002</td><th><code>--</code></th><td>Message 4</td><td><pre>&lt;a&gt;
-      &lt;b id=&quot;xyz&quot;&gt;
+      &lt;b id=&quot;xyz&quot;&gt;​
       c
       &lt;/b&gt; &lt;/a&gt;</pre></td></tr>
       <tr><td>000002</td><th><code>--</code></th><td>Message 5</td><td><pre>Context</pre></td></tr>
-      <tr><td>000003</td><th><code><a href='log.txt#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
+      <tr><td>000003</td><th><code><a href='log.txt#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;​
       c
       &lt;/b&gt;</pre></td></tr>
       </tbody></table>
@@ -179,7 +179,7 @@ RSpec.describe Metanorma::Utils do
       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
       <tbody>
       <tr><td>000002</td><th><code>--</code></th><td>Message 3</td><td><pre>&lt;a&gt;
-      The number is &lt;latexmath&gt;\\1&lt;/latexmath&gt; &lt;/a&gt;</pre></td></tr>
+      The number is ​&lt;latexmath&gt;\\1&lt;/​latexmath&gt; &lt;/a&gt;</pre></td></tr>
       </tbody></table>
       </body></html>
     OUTPUT

@@ -129,7 +129,11 @@ module Metanorma
       LONGSTR_THRESHOLD = 10
       LONGSTR_NOPUNCT = 2
 
-      def break_up_long_str(text)
+      # break on punct every LONGSTRING_THRESHOLD chars, with zero width space
+      # if punct fails, try break on camel case, with soft hyphen
+      # break regardless every LONGSTRING_THRESHOLD * LONGSTR_NOPUNCT,
+      # with soft hyphen
+      def break_up_long_str(text, threshold = LONGSTR_THRESHOLD, nopunct = LONGSTR_NOPUNCT)
         /^\s*$/.match?(text) and return text
         text.split(/(?=\s)/).map do |w|
           if /^\s*$/.match(text) || (w.size < LONGSTR_THRESHOLD) then w
@@ -156,10 +160,6 @@ module Metanorma
         (?<=\p{Ll}\p{Ll})(?=\p{Lu}\p{Ll}\p{Ll}) # 2 lowerc / upperc, 2 lowerc
       }x.freeze
 
-      # break on punct every LONGSTRING_THRESHOLD chars, with zero width space
-      # if punct fails, try break on camel case, with soft hyphen
-      # break regardless every LONGSTRING_THRESHOLD * LONGSTR_NOPUNCT,
-      # with soft hyphen
       def break_up_long_str1(text, iteration)
         s, separator = break_up_long_str2(text)
         if s.size == 1 # could not break up
