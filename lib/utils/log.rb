@@ -7,7 +7,6 @@ module Metanorma
 
       def initialize
         @log = {}
-        @xml = nil
         @c = HTMLEntities.new
         @mapid = {}
       end
