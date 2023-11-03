@@ -135,7 +135,7 @@ module Metanorma
       # with soft hyphen
       def break_up_long_str(text, threshold = LONGSTR_THRESHOLD, nopunct = LONGSTR_NOPUNCT)
         /^\s*$/.match?(text) and return text
-        text.split(/(?=\s)/).map do |w|
+        text.split(/(?=(?:\s|-))/).map do |w|
           if /^\s*$/.match(text) || (w.size < threshold) then w
           else
             w.scan(/.{,#{threshold}}/o).map.with_index do |w1, i|

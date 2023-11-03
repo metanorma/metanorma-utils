@@ -191,6 +191,8 @@ RSpec.describe Metanorma::Utils do
       .to eq "http://&#x200b;www.example.&#x200b;com/&#x200b;AAAAAAAAAAAAAAAAA&#xad;AAAAAAAAAAAAAAAAAAAA&#xad;AAAAAAAABBBBBBBBBBBB&#xad;BBBBBBBBBBBBBBBB"
     expect(break_up_test("www.example.com/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBB"))
       .to eq "www.&#x200b;example.com/&#x200b;AAAAAAAAAAAAAAAAAAAAAAAA&#xad;AAAAAAAAAAAAAAAAAAAA&#xad;ABBBBBBBBBBBBBBBBBBB&#xad;BBBBBBBBB"
+    expect(break_up_test("aaaaaaaa-aa"))
+      .to eq "aaaaaaaa-aa"
     expect(break_up_test("aaaaaaaa_aa"))
       .to eq "aaaaaaaa_&#x200b;aa"
     expect(break_up_test("aaaaaaaa.aa"))
