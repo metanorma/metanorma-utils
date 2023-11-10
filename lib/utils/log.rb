@@ -17,7 +17,11 @@ module Metanorma
         item = create_entry(loc, msg)
         @log[category] << item
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        warn "#{category}: #{loc}#{msg}"
+        suppress_display?(category, loc, msg) or warn "#{category}: #{loc}#{msg}"
+      end
+
+      def suppress_display?(category, loc, msg)
+        ["Metanorma XML Syntax"].include?(category)
       end
 
       def create_entry(loc, msg)

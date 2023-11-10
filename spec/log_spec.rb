@@ -113,6 +113,36 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
+  it "suppresses syntax errors from screen display" do
+    FileUtils.rm_f("log.txt")
+    log = Metanorma::Utils::Log.new
+    expect { log.add("Category 1", nil, "A") }
+      .to output("Category 1: A\n").to_stderr
+    expect { log.add("Metanorma XML Syntax", nil, "A") }
+      .not_to output("Metanorma XML Syntax: A\n").to_stderr
+    log.write("log.txt")
+    expect(File.exist?("log.txt")).to be true
+    file = File.read("log.txt", encoding: "utf-8")
+    expect(file).to eq <<~OUTPUT
+      <html><head><title>log.txt errors</title>
+      <style> pre { white-space: pre-wrap; } </style>
+      </head><body><h1>log.txt errors</h1>
+      <h2>Category 1</h2>
+      <table border="1">
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      <tbody>
+      <tr><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td></tr>
+      </tbody></table>
+      <h2>Metanorma XML Syntax</h2>
+      <table border="1">
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      <tbody>
+      <tr><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td></tr>
+      </tbody></table>
+      </body></html>
+    OUTPUT
+  end
+
   it "deals with illegal characters in log" do
     FileUtils.rm_f("log.txt")
     log = Metanorma::Utils::Log.new
