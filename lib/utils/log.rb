@@ -17,10 +17,11 @@ module Metanorma
         item = create_entry(loc, msg)
         @log[category] << item
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        suppress_display?(category, loc, msg) or warn "#{category}: #{loc}#{msg}"
+        suppress_display?(category, loc, msg) or
+          warn "#{category}: #{loc}#{msg}"
       end
 
-      def suppress_display?(category, loc, msg)
+      def suppress_display?(category, _loc, _msg)
         ["Metanorma XML Syntax"].include?(category)
       end
 
@@ -99,6 +100,7 @@ module Metanorma
       def log_hdr(file)
         <<~HTML
           <html><head><title>#{file} errors</title>
+          <meta charset="UTF-8"/>
           <style> pre { white-space: pre-wrap; } </style>
           </head><body><h1>#{file} errors</h1>
         HTML
