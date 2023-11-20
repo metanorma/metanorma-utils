@@ -70,6 +70,7 @@ RSpec.describe Metanorma::Utils do
     file = File.read("log.txt", encoding: "utf-8")
     expect(file).to eq <<~OUTPUT
       <html><head><title>log.txt errors</title>
+      <meta charset="UTF-8"/>
       <style> pre { white-space: pre-wrap; } </style>
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
@@ -125,6 +126,7 @@ RSpec.describe Metanorma::Utils do
     file = File.read("log.txt", encoding: "utf-8")
     expect(file).to eq <<~OUTPUT
       <html><head><title>log.txt errors</title>
+      <meta charset="UTF-8"/>
       <style> pre { white-space: pre-wrap; } </style>
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
@@ -152,6 +154,7 @@ RSpec.describe Metanorma::Utils do
     file = File.read("log.txt", encoding: "utf-8")
     expect(file).to eq <<~OUTPUT
       <html><head><title>log.txt errors</title>
+      <meta charset="UTF-8"/>
       <style> pre { white-space: pre-wrap; } </style>
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
@@ -173,6 +176,7 @@ RSpec.describe Metanorma::Utils do
     file = File.read("log.txt", encoding: "utf-8")
     expect(file).to eq <<~OUTPUT
       <html><head><title>log.txt errors</title>
+      <meta charset="UTF-8"/>
       <style> pre { white-space: pre-wrap; } </style>
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
@@ -202,6 +206,7 @@ RSpec.describe Metanorma::Utils do
     file = File.read("log.txt", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>log.txt errors</title>
+      <meta charset="UTF-8"/>
       <style> pre { white-space: pre-wrap; } </style>
       </head><body><h1>log.txt errors</h1>
       <h2>Category 2</h2>
