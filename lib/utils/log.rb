@@ -11,23 +11,32 @@ module Metanorma
         @mapid = {}
       end
 
-      def add(category, loc, msg)
+      # severity: 0: abort; 1: serious; 2: not serious
+      def add(category, loc, msg, severity: 2)
         @novalid and return
         @log[category] ||= []
-        item = create_entry(loc, msg)
+        item = create_entry(loc, msg, severity)
         @log[category] << item
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
         suppress_display?(category, loc, msg) or
           warn "#{category}: #{loc}#{msg}"
       end
 
+      def abort_messages
+        @log.values.each_with_object([]) do |v, m|
+          v.each do |e|
+            e[:severity].zero? and m << e[:message]
+          end
+        end
+      end
+
       def suppress_display?(category, _loc, _msg)
         ["Metanorma XML Syntax"].include?(category)
       end
 
-      def create_entry(loc, msg)
+      def create_entry(loc, msg, severity)
         msg = msg.encode("UTF-8", invalid: :replace, undef: :replace)
-        item = { location: current_location(loc),
+        item = { location: current_location(loc), severity: severity,
                  message: msg, context: context(loc), line: line(loc, msg) }
         if item[:message].include?(" :: ")
           a = item[:message].split(" :: ", 2)
@@ -101,7 +110,11 @@ module Metanorma
         <<~HTML
           <html><head><title>#{file} errors</title>
           <meta charset="UTF-8"/>
-          <style> pre { white-space: pre-wrap; } </style>
+          <style> pre { white-space: pre-wrap; }
+          thead th { font-weight: bold; background-color: aqua; }
+          .severity0 { font-weight: bold; background-color: lightpink }
+          .severity1 { font-weight: bold; }
+          .severity2 { }  </style>
           </head><body><h1>#{file} errors</h1>
         HTML
       end
@@ -118,25 +131,31 @@ module Metanorma
       def write_key(file, key)
         file.puts <<~HTML
           <h2>#{key}</h2>\n<table border="1">
-          <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+          <thead><th width="5%">Line</th><th width="20%">ID</th>
+          <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
           <tbody>
         HTML
         @log[key].sort_by { |a| [a[:line], a[:location], a[:message]] }
           .each do |n|
-          write1(file, n)
+          write_entry(file, render_preproc_entry(n))
         end
         file.puts "</tbody></table>\n"
       end
 
-      def write1(file, entry)
-        line = entry[:line]
-        line = nil if line == "000000"
-        loc = loc_link(entry)
-        msg = break_up_long_str(entry[:message], 10, 2)
+      def render_preproc_entry(entry)
+        ret = entry.dup
+        ret[:line] = nil if ret[:line] == "000000"
+        ret[:location] = loc_link(entry)
+        ret[:message] = break_up_long_str(entry[:message], 10, 2)
           .gsub(/`([^`]+)`/, "<code>\\1</code>")
-        entry[:context] and context = entry[:context].split("\n").first(5)
+        ret[:context] = context_render(entry)
+        ret.compact
+      end
+
+      def context_render(entry)
+        entry[:context] or return nil
+        entry[:context].split("\n").first(5)
           .join("\n").gsub("><", "> <")
-        write_entry(file, line, loc, msg, context)
       end
 
       def mapid(old, new)
@@ -160,10 +179,12 @@ module Metanorma
         Metanorma::Utils.break_up_long_str(str, threshold, punct)
       end
 
-      def write_entry(file, line, loc, msg, context)
-        context &&= @c.encode(break_up_long_str(context, 40, 2))
+      def write_entry(file, entry)
+        entry[:context] &&= @c.encode(break_up_long_str(entry[:context], 40, 2))
         file.print <<~HTML
-          <tr><td>#{line}</td><th><code>#{loc}</code></th><td>#{msg}</td><td><pre>#{context}</pre></td></tr>
+          <tr class="severity#{entry[:severity]}">
+          <td>#{entry[:line]}</td><th><code>#{entry[:location]}</code></th>
+          <td>#{entry[:message]}</td><td><pre>#{entry[:context]}</pre></td><td>#{entry[:severity]}</td></tr>
         HTML
       end
     end

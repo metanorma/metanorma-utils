@@ -32,6 +32,20 @@ class Dummy
   end
 end
 
+HTML_HDR = <<~HTML.freeze
+  <meta charset="UTF-8"/>
+  <style> pre { white-space: pre-wrap; }
+  thead th { font-weight: bold; background-color: aqua; }
+  .severity0 { font-weight: bold; background-color: lightpink }
+  .severity1 { font-weight: bold; }
+  .severity2 { }  </style>
+HTML
+
+TBL_HDR = <<~HTML.freeze
+  <thead><th width="5%">Line</th><th width="20%">ID</th>
+  <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+HTML
+
 def xmlpp(xml)
   xsl = <<~XSL
     <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">

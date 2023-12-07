@@ -51,12 +51,12 @@ RSpec.describe Metanorma::Utils do
     INPUT
     FileUtils.rm_f("log.txt")
     log = Metanorma::Utils::Log.new
-    log.add("Category 1", nil, "Message 1")
-    log.add("Category 1", "node", "Message 2")
-    log.add("Category 2", xml.at("//xml/a/b"), "Message 3")
-    log.add("Category 2", xml.at("//xml/a"), "Message 4")
-    log.add("Category 2", xml.at("//xml/a"), "Message 5 :: Context")
-    log.add("Category 3", id1, "Message 6.1")
+    log.add("Category 1", nil, "Message 1", severity: 0)
+    log.add("Category 1", "node", "Message 2", severity: 1)
+    log.add("Category 2", xml.at("//xml/a/b"), "Message 3", severity: 2)
+    log.add("Category 2", xml.at("//xml/a"), "Message 4", severity: 0)
+    log.add("Category 2", xml.at("//xml/a"), "Message 5 :: Context", severity: 1)
+    log.add("Category 3", id1, "Message 6.1", severity: 2)
     log.add("Category 3", id2, "Message 6.2")
     log.add("Category 3", id3, "Message 6.3")
     log.add("Category 4", li1, "XML Line 1212:40, Message 7.1")
@@ -66,49 +66,49 @@ RSpec.describe Metanorma::Utils do
     log.mapid("xyz", "abc")
     log.mapid("abc", "def")
     log.write("log.txt")
+    expect(log.abort_messages).to be_equivalent_to ["Message 1", "Message 4"]
     expect(File.exist?("log.txt")).to be true
     file = File.read("log.txt", encoding: "utf-8")
-    expect(file).to eq <<~OUTPUT
+    expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>log.txt errors</title>
-      <meta charset="UTF-8"/>
-      <style> pre { white-space: pre-wrap; } </style>
+      #{HTML_HDR}
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td></td><th><code>--</code></th><td>Message 1</td><td><pre></pre></td></tr>
-      <tr><td></td><th><code>node</code></th><td>Message 2</td><td><pre></pre></td></tr>
+      <tr class="severity0"><td></td><th><code>--</code></th><td>Message 1</td><td><pre></pre></td><td>0</td></tr>
+      <tr class="severity1"><td></td><th><code>node</code></th><td>Message 2</td><td><pre></pre></td><td>1</td></tr>
       </tbody></table>
       <h2>Category 2</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td>000002</td><th><code>--</code></th><td>Message 4</td><td><pre>&lt;a&gt;
+      <tr class="severity0"><td>000002</td><th><code>--</code></th><td>Message 4</td><td><pre>&lt;a&gt;
       &lt;b id=&quot;xyz&quot;&gt;
       c
-      &lt;/b&gt; &lt;/a&gt;</pre></td></tr>
-      <tr><td>000002</td><th><code>--</code></th><td>Message 5</td><td><pre>Context</pre></td></tr>
-      <tr><td>000003</td><th><code><a href='log.txt#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
+      &lt;/b&gt; &lt;/a&gt;</pre></td><td>0</td></tr>
+      <tr class="severity1"><td>000002</td><th><code>--</code></th><td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
+      <tr class="severity2"><td>000003</td><th><code><a href='log.txt#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
       c
-      &lt;/b&gt;</pre></td></tr>
+      &lt;/b&gt;</pre></td><td>2</td></tr>
       </tbody></table>
       <h2>Category 3</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td></td><th><code>--</code></th><td>Message 6.1</td><td><pre>ID: </pre></td></tr>
-      <tr><td></td><th><code>--</code></th><td>Message 6.3</td><td><pre>ID: </pre></td></tr>
-      <tr><td></td><th><code><a href='log.txt#B'>B</a></code></th><td>Message 6.2</td><td><pre>ID: B</pre></td></tr>
+      <tr class="severity2"><td></td><th><code>--</code></th><td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
+      <tr class="severity2"><td></td><th><code>--</code></th><td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
+      <tr class="severity2"><td></td><th><code><a href='log.txt#B'>B</a></code></th><td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
       </tbody></table>
       <h2>Category 4</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td></td><th><code>??</code></th><td>Message 7.2</td><td><pre>Line: </pre></td></tr>
-      <tr><td></td><th><code>??</code></th><td>Message 7.4</td><td><pre>Line: </pre></td></tr>
-      <tr><td>000013</td><th><code>XML Line 000013</code></th><td>Message 7.3</td><td><pre>Line: 13</pre></td></tr>
-      <tr><td>1212</td><th><code>Asciidoctor Line 000012</code></th><td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td></tr>
+      <tr class="severity2"><td></td><th><code>??</code></th><td>Message 7.2</td><td><pre>Line: </pre></td><td>2</td></tr>
+      <tr class="severity2"><td></td><th><code>??</code></th><td>Message 7.4</td><td><pre>Line: </pre></td><td>2</td></tr>
+      <tr class="severity2"><td>000013</td><th><code>XML Line 000013</code></th><td>Message 7.3</td><td><pre>Line: 13</pre></td><td>2</td></tr>
+      <tr class="severity2"><td>1212</td><th><code>Asciidoctor Line 000012</code></th><td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
@@ -124,22 +124,21 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.txt")).to be true
     file = File.read("log.txt", encoding: "utf-8")
-    expect(file).to eq <<~OUTPUT
+    expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>log.txt errors</title>
-      <meta charset="UTF-8"/>
-      <style> pre { white-space: pre-wrap; } </style>
+      #{HTML_HDR}
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td></tr>
+      <tr class="severity2"><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       <h2>Metanorma XML Syntax</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td></tr>
+      <tr class="severity2"><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
@@ -152,16 +151,15 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.txt")).to be true
     file = File.read("log.txt", encoding: "utf-8")
-    expect(file).to eq <<~OUTPUT
+    expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>log.txt errors</title>
-      <meta charset="UTF-8"/>
-      <style> pre { white-space: pre-wrap; } </style>
+      #{HTML_HDR}
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td></td><th><code>--</code></th><td>é�</td><td><pre></pre></td></tr>
+      <tr class="severity2"><td></td><th><code>--</code></th><td>é�</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
@@ -174,16 +172,17 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.txt")).to be true
     file = File.read("log.txt", encoding: "utf-8")
-    expect(file).to eq <<~OUTPUT
+    expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>log.txt errors</title>
-      <meta charset="UTF-8"/>
-      <style> pre { white-space: pre-wrap; } </style>
+      #{HTML_HDR}
       </head><body><h1>log.txt errors</h1>
       <h2>Category 1</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td></td><th><code><a href='log.txt#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'>AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA</a></code></th><td>BBBBBBBBBBBBBBBBBBBB­BBBBBBBBBBBBBBBBBBBB­BBBBBBBB</td><td><pre></pre></td></tr>
+      <tr class="severity2">
+      <td></td><th><code><a href='log.txt#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'>AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA</a></code></th>
+      <td>BBBBBBBBBBBBBBBBBBBB­BBBBBBBBBBBBBBBBBBBB­BBBBBBBB</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
@@ -206,15 +205,14 @@ RSpec.describe Metanorma::Utils do
     file = File.read("log.txt", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>log.txt errors</title>
-      <meta charset="UTF-8"/>
-      <style> pre { white-space: pre-wrap; } </style>
+      #{HTML_HDR}
       </head><body><h1>log.txt errors</h1>
       <h2>Category 2</h2>
       <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="30%">Message</th><th width="45%">Context</th></thead>
+      #{TBL_HDR}
       <tbody>
-      <tr><td>000002</td><th><code>--</code></th><td>Message 3</td><td><pre>&lt;a&gt;
-      The number is &lt;latexmath&gt;\\1&lt;/latexmath&gt; &lt;/a&gt;</pre></td></tr>
+      <tr class="severity2"><td>000002</td><th><code>--</code></th><td>Message 3</td><td><pre>&lt;a&gt;
+      The number is &lt;latexmath&gt;\\1&lt;/latexmath&gt; &lt;/a&gt;</pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
