@@ -2,6 +2,10 @@ require "spec_helper"
 require "fileutils"
 
 RSpec.describe Metanorma::Utils do
+  let(:datauri) do
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAYAAACAvzbMAAAABmJLR0QA/wD/AP+gvaeTAAAEzUlEQVR4nO3dz4tVZRzH8fedacogMCjHoiBop1RaOzF/QAv7QUIYZdCq/oQo+hdC10FRbVtVBC0r09y0iZAmoVwWRRaMBZlKnhZ3UlEwnVFnhvt6wQPnnnOeh8/m8r0P9zznKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC42HT1RPVOdbT6c6Edrd5euDa9bOkAWJF2V3PVUA2jGtbfPG6jhXMLba56ahlzArBCTFf7q2GqhhfXNxzY3HB6R8Owc9xO72j4fHPDC7Pjexq3fZmNMOFGyx0Altn+6pV1Mw0fPtDo0bWXv/nLE7Xn24bjZxot9H31BmSEFUkBYZLtrj6+c6bhq0ca3X/rlXU6drK2fN3w27iIPF19ch0zwoqlgDCpbqqOTNWGgw/X/808LnZovnZ+U0N9Vz1Ynb0OGWFFm1ruALBMdlUb9q6/+uJRtf32en62qo2Nn86CiaOAMKmerXr5rsUP8NLd5w6fWXIaWIUUECbV1qqti5h9/Gfb+b7blpwGViEFhEl177qZumUJ34A1U3XHTFX3XKNMsKooIAAsigLCpPrx+Jk6tYRnp/4+W7+fqeqna5QJVhUFhEl1uOrwicUPcGj+/OGS08AqpIAwqT6oevfnxQ/w3i/nDj9achpYhSwkZFJNV0dGtfGLzeN1HVfjwHw9Nl5IOFc9lIWETCAzECbVP9XrQ7VnruHYySvv+MPJem6uYRh/fC3FgwnlbaJMsu+r2/4629b3f23YsrbRfWsu3+HgfO06cu49WPuqN29ATgBWoOnGhWCYqmHvbMNnmxpObT//OvdT2xs+3TS+dsHeIG/kBxgA1ZNdsKFUF2wo1aUbSj2+bCkBWJGmGheHtxoXij8W2tzCuV353xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAS/wLBh+fQNux/v8AAAAASUVORK5CYII="
+  end
+
   context "recognises data uris" do
     it "where the content is an existing file at a relative path" do
       expect(Metanorma::Utils.datauri("spec/fixtures/rice_image1.png"))
@@ -59,6 +63,28 @@ RSpec.describe Metanorma::Utils do
       .to eq true
     expect(Metanorma::Utils.absolute_path?("a.html"))
       .to eq false
+  end
+
+  describe ".save_dataimage" do
+    it "passes call to Vectory" do
+      expect(Vectory::Utils).to receive(:save_dataimage).with(datauri)
+      Metanorma::Utils.save_dataimage(datauri)
+    end
+  end
+
+  describe ".decode_datauri" do
+    it "passes call to Vectory" do
+      expect(Vectory::Utils).to receive(:decode_datauri).with(datauri)
+      Metanorma::Utils.decode_datauri(datauri)
+    end
+  end
+
+  describe ".create_namespace" do
+    it "creates Namespace object" do
+      Metanorma::Utils.create_namespace(Nokogiri.parse(<<~XML)).ns("")
+        <root xmlns="http://nokogiri.org/ns/default"></root>
+      XML
+    end
   end
 
   it "rewrites SVGs" do
