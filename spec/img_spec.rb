@@ -410,4 +410,10 @@ RSpec.describe Metanorma::Utils do
     expect(Metanorma::Utils.get_image_size(image, "spec/19160-8.jpg"))
       .to eq [[459, 900], [919, 3000]]
   end
+
+  it "resizes SVG with missing or auto sizes" do
+    image = Nokogiri::XML(File.read("spec/odf.svg")).root
+    Metanorma::Utils.image_resize(image, "spec/odf.svg", 100, 100)
+    expect(image.attributes["viewBox"].value).to eq "0 0 100 100"
+  end
 end
