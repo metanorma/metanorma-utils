@@ -212,7 +212,7 @@ module Metanorma
 
       def get_image_size(img, path)
         realsize = ImageSize.path(path).size
-        s = image_size_interpret(img, realsize)
+        s = image_size_interpret(img, realsize || [nil, nil])
         image_size_zeroes_complete(s, realsize)
       end
 
