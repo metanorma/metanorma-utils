@@ -223,7 +223,8 @@ module Metanorma
       end
 
       def image_size_percent(value, real)
-        /%$/.match?(value) and value = real * (value.sub(/%$/, "").to_f / 100)
+        /%$/.match?(value) && !real.nil? and
+          value = real * (value.sub(/%$/, "").to_f / 100)
         value.to_i
       end
 
