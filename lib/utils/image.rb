@@ -1,6 +1,7 @@
 require "tempfile"
 require "marcel"
 require "base64"
+require "image_size"
 
 module Metanorma
   module Utils
@@ -182,6 +183,55 @@ module Metanorma
         return nil unless output && output[:type_detected]
 
         [output[:type_detected]]
+      end
+
+      def image_resize(img, path, maxheight, maxwidth)
+        s, realsize = get_image_size(img, path)
+        s[0] == nil && s[1] == nil and return s
+        img.name == "svg" && !img["viewBox"] and
+          img["viewBox"] = "0 0 #{s[0]} #{s[1]}"
+        s = image_size_fillin(s, realsize)
+        image_shrink(s, maxheight, maxwidth)
+      end
+
+      def image_size_fillin(dim, realsize)
+        dim[1].zero? && !dim[0].zero? and
+          dim[1] = dim[0] * realsize[1] / realsize[0]
+        dim[0].zero? && !dim[1].zero? and
+          dim[0] = dim[1] * realsize[0] / realsize[1]
+        dim
+      end
+
+      def image_shrink(dim, maxheight, maxwidth)
+        dim[1] > maxheight and
+          dim = [(dim[0] * maxheight / dim[1]).ceil, maxheight]
+        dim[0] > maxwidth and
+          dim = [maxwidth, (dim[1] * maxwidth / dim[0]).ceil]
+        dim
+      end
+
+      def get_image_size(img, path)
+        realsize = ImageSize.path(path).size
+        s = image_size_interpret(img, realsize)
+        image_size_zeroes_complete(s, realsize)
+      end
+
+      def image_size_interpret(img, realsize)
+        w = image_size_percent(img["width"], realsize[0])
+        h = image_size_percent(img["height"], realsize[1])
+        [w, h]
+      end
+
+      def image_size_percent(value, real)
+        /%$/.match?(value) and value = real * (value.sub(/%$/, "").to_f / 100)
+        value.to_i
+      end
+
+      def image_size_zeroes_complete(dim, realsize)
+        dim[0].zero? && dim[1].zero? and dim = realsize
+        realsize.nil? || realsize[0].nil? || realsize[1].nil? and
+          dim = [nil, nil]
+        [dim, realsize]
       end
     end
   end
