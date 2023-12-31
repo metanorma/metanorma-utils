@@ -187,6 +187,7 @@ module Metanorma
 
       def image_resize(img, path, maxheight, maxwidth)
         s, realsize = get_image_size(img, path)
+        s.nil? and return [nil, nil]
         s[0] == nil && s[1] == nil and return s
         img.name == "svg" && !img["viewBox"] and
           img["viewBox"] = "0 0 #{s[0]} #{s[1]}"
@@ -229,9 +230,11 @@ module Metanorma
       end
 
       def image_size_zeroes_complete(dim, realsize)
-        dim[0].zero? && dim[1].zero? and dim = realsize
-        realsize.nil? || realsize[0].nil? || realsize[1].nil? and
+        if realsize.nil? || realsize[0].nil? || realsize[1].nil?
           dim = [nil, nil]
+        elsif dim[0].zero? && dim[1].zero?
+          dim = realsize
+        end
         [dim, realsize]
       end
     end
