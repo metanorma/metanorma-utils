@@ -230,10 +230,10 @@ module Metanorma
       end
 
       def image_size_zeroes_complete(dim, realsize)
-        if realsize.nil? || realsize[0].nil? || realsize[1].nil?
-          dim = [nil, nil]
-        elsif dim[0].zero? && dim[1].zero?
+        if dim[0].zero? && dim[1].zero?
           dim = realsize
+        elsif realsize.nil? || realsize[0].nil? || realsize[1].nil?
+          dim = [nil, nil]
         end
         [dim, realsize]
       end
