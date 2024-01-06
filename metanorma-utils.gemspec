@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "concurrent-ruby"
   spec.add_dependency "csv"
   spec.add_dependency "htmlentities", "~> 4.3.4"
+  spec.add_dependency "image_size", ">= 3.2.0"
   spec.add_dependency "marcel", "~> 1.0.0"
   spec.add_dependency "mime-types"
   spec.add_dependency "nokogiri", ">= 1.11"
