@@ -38,7 +38,9 @@ HTML_HDR = <<~HTML.freeze
   thead th { font-weight: bold; background-color: aqua; }
   .severity0 { font-weight: bold; background-color: lightpink }
   .severity1 { font-weight: bold; }
-  .severity2 { }  </style>
+  .severity2 { }
+  .severity3 { font-style: italic; color: grey; }
+   </style>
 HTML
 
 TBL_HDR = <<~HTML.freeze
