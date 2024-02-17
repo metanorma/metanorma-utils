@@ -22,9 +22,9 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "generates XML snippets from Asciidoctor" do
-    input = <<~'EOS'
+    input = <<~'INPUT'
       <A> &#150;
-    EOS
+    INPUT
 
     doc = (Asciidoctor::Document.new input.lines,
                                      { standalone: false }).parse
@@ -43,16 +43,16 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "wraps an Asciidoctor node in paragraph" do
-    input = <<~'EOS'
+    input = <<~'INPUT'
       NOTE: XYZ
-    EOS
-    input2 = <<~'EOS'
+    INPUT
+    input2 = <<~'INPUT'
       ====
       A
 
       B
       ====
-    EOS
+    INPUT
 
     doc = (Asciidoctor::Document.new input.lines,
                                      { standalone: false }).parse
@@ -74,13 +74,13 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "deals with eoln in different scripts" do
-    input = <<~'EOS'
+    input = <<~'INPUT'
       A
       B
-    EOS
+    INPUT
 
     doc = (Asciidoctor::Document.new input.lines,
-                                      { standalone: false }).parse
+                                     { standalone: false }).parse
 
     out = Metanorma::Utils.noko do |xml|
       Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
@@ -96,7 +96,6 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
-
   it "applies namespace to xpath" do
     expect(Metanorma::Utils.ns("//ab/Bb/c1-d[ancestor::c][d = 'x'][e/f]"))
       .to be_equivalent_to("//xmlns:ab/xmlns:Bb/xmlns:c1-d[ancestor::xmlns:c]" \
@@ -108,5 +107,11 @@ RSpec.describe Metanorma::Utils do
       .to be_equivalent_to "A&#xe9;B"
     expect(Metanorma::Utils.numeric_escapes("A<X>&eacute;</X>B"))
       .to be_equivalent_to "A<X>&#xe9;</X>B"
+  end
+
+  it "case transforms XML snippets" do
+    expect(Metanorma::Utils
+      .case_transform_xml("Title <span class='abc'>abc</span> title", :upcase))
+      .to be_equivalent_to 'TITLE <span class="abc">ABC</span> TITLE'
   end
 end

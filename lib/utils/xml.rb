@@ -135,6 +135,15 @@ module Metanorma
         ins.next = v
         ins.next
       end
+
+      def case_transform_xml(xml, kase)
+        x = Nokogiri::XML("<root>#{xml}</root>")
+        x.traverse do |e|
+          e.text? or next
+          e.replace(e.text.send(kase))
+        end
+        x.root.children.to_xml
+      end
     end
   end
 end
