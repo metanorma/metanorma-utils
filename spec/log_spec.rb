@@ -49,13 +49,14 @@ RSpec.describe Metanorma::Utils do
       c
       </b></a></xml>
     INPUT
-    FileUtils.rm_f("log.txt")
+    FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
     log.add("Category 1", nil, "Message 1", severity: 0)
     log.add("Category 1", "node", "Message 2", severity: 1)
     log.add("Category 2", xml.at("//xml/a/b"), "Message 3", severity: 2)
     log.add("Category 2", xml.at("//xml/a"), "Message 4", severity: 0)
-    log.add("Category 2", xml.at("//xml/a"), "Message 5 :: Context", severity: 1)
+    log.add("Category 2", xml.at("//xml/a"), "Message 5 :: Context",
+            severity: 1)
     log.add("Category 3", id1, "Message 6.1", severity: 2)
     log.add("Category 3", id2, "Message 6.2")
     log.add("Category 3", id3, "Message 6.3")
@@ -67,12 +68,13 @@ RSpec.describe Metanorma::Utils do
     log.mapid("abc", "def")
     log.write("log.txt")
     expect(log.abort_messages).to be_equivalent_to ["Message 1", "Message 4"]
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
+    expect(File.exist?("log.err.html")).to be true
+    expect(File.exist?("log.txt")).to be false
+    file = File.read("log.err.html", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
-      <html><head><title>log.txt errors</title>
+      <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
-      </head><body><h1>log.txt errors</h1>
+      </head><body><h1>./log.err.html errors</h1>
       <h2>Category 1</h2>
       <table border="1">
       #{TBL_HDR}
@@ -89,7 +91,7 @@ RSpec.describe Metanorma::Utils do
       c
       &lt;/b&gt; &lt;/a&gt;</pre></td><td>0</td></tr>
       <tr class="severity1"><td>000002</td><th><code>--</code></th><td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
-      <tr class="severity2"><td>000003</td><th><code><a href='log.txt#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
+      <tr class="severity2"><td>000003</td><th><code><a href='#{File.join('.', 'log.html')}#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
       c
       &lt;/b&gt;</pre></td><td>2</td></tr>
       </tbody></table>
@@ -99,7 +101,7 @@ RSpec.describe Metanorma::Utils do
       <tbody>
       <tr class="severity2"><td></td><th><code>--</code></th><td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
       <tr class="severity2"><td></td><th><code>--</code></th><td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
-      <tr class="severity2"><td></td><th><code><a href='log.txt#B'>B</a></code></th><td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
+      <tr class="severity2"><td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th><td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
       </tbody></table>
       <h2>Category 4</h2>
       <table border="1">
@@ -114,20 +116,60 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
+  it "sets log file location" do
+    FileUtils.rm_f("metanorma.err.html")
+    log = Metanorma::Utils::Log.new
+    log.add("Category 1", nil, "Message 1", severity: 0)
+    log.write
+    expect(File.exist?("metanorma.err.html")).to be true
+    FileUtils.rm_f("metanorma.err.html")
+
+    FileUtils.rm_f("log.html")
+    log.write("log.html")
+    expect(File.exist?("log.err.html")).to be true
+    FileUtils.rm_f("log.err.html")
+
+    FileUtils.rm_f("spec/log.html")
+    log.write("spec/log.html")
+    expect(File.exist?("spec/log.err.html")).to be true
+    FileUtils.rm_f("spec/log.err.html")
+
+    FileUtils.rm_f("log.err.html")
+    log.save_to("log.html")
+    log.write
+    expect(File.exist?("log.err.html")).to be true
+    FileUtils.rm_f("log.err.html")
+
+    FileUtils.rm_f("spec/log.err.html")
+    log.save_to("log.html", "spec")
+    log.write
+    expect(File.exist?("spec/log.err.html")).to be true
+    FileUtils.rm_f("spec/log.err.html")
+
+    FileUtils.rm_f("spec/log.err.html")
+    FileUtils.rm_f("spec/log1.err.html")
+    log.save_to("log.html", "spec")
+    log.write("spec/log1.err.html")
+    expect(File.exist?("spec/log.err.html")).to be false
+    expect(File.exist?("spec/log1.err.html")).to be true
+    FileUtils.rm_f("spec/log.err.html")
+    FileUtils.rm_f("spec/log1.err.html")
+  end
+
   it "suppresses syntax errors from screen display" do
-    FileUtils.rm_f("log.txt")
+    FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
     expect { log.add("Category 1", nil, "A") }
       .to output("Category 1: A\n").to_stderr
     expect { log.add("Metanorma XML Syntax", nil, "A") }
       .not_to output("Metanorma XML Syntax: A\n").to_stderr
     log.write("log.txt")
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
+    expect(File.exist?("log.err.html")).to be true
+    file = File.read("log.err.html", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
-      <html><head><title>log.txt errors</title>
+      <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
-      </head><body><h1>log.txt errors</h1>
+      </head><body><h1>./log.err.html errors</h1>
       <h2>Category 1</h2>
       <table border="1">
       #{TBL_HDR}
@@ -145,16 +187,16 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "deals with illegal characters in log" do
-    FileUtils.rm_f("log.txt")
+    FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
     log.add("Category 1", nil, "é\xc2")
     log.write("log.txt")
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
+    expect(File.exist?("log.err.html")).to be true
+    file = File.read("log.err.html", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
-      <html><head><title>log.txt errors</title>
+      <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
-      </head><body><h1>log.txt errors</h1>
+      </head><body><h1>./log.err.html errors</h1>
       <h2>Category 1</h2>
       <table border="1">
       #{TBL_HDR}
@@ -166,22 +208,24 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "deals with long strings in log" do
-    FileUtils.rm_f("log.txt")
+    FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
-    log.add("Category 1", "ID AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+    log.add("Category 1",
+            "ID AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
     log.write("log.txt")
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
+    expect(File.exist?("log.err.html")).to be true
+    file = File.read("log.err.html", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
-      <html><head><title>log.txt errors</title>
+      <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
-      </head><body><h1>log.txt errors</h1>
+      </head><body><h1>./log.err.html errors</h1>
       <h2>Category 1</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>
       <tr class="severity2">
-      <td></td><th><code><a href='log.txt#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'>AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA</a></code></th>
+      <td></td><th><code><a href='#{File.join('.', 'log.html')}#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'>AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA</a></code></th>
       <td>BBBBBBBBBBBBBBBBBBBB­BBBBBBBBBBBBBBBBBBBB­BBBBBBBB</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
@@ -197,16 +241,16 @@ RSpec.describe Metanorma::Utils do
       <latexmath>\\1</latexmath>
       </stem></a></xml>
     INPUT
-    FileUtils.rm_f("log.txt")
+    FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
     log.add("Category 2", xml.at("//xml/a"), "Message 3")
     log.write("log.txt")
-    expect(File.exist?("log.txt")).to be true
-    file = File.read("log.txt", encoding: "utf-8")
+    expect(File.exist?("log.err.html")).to be true
+    file = File.read("log.err.html", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
-      <html><head><title>log.txt errors</title>
+      <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
-      </head><body><h1>log.txt errors</h1>
+      </head><body><h1>./log.err.html errors</h1>
       <h2>Category 2</h2>
       <table border="1">
       #{TBL_HDR}

@@ -11,6 +11,14 @@ module Metanorma
         @mapid = {}
       end
 
+      def save_to(filename, dir = nil)
+        dir ||= File.dirname(filename)
+        filename.sub!(/\.err\.html$/, ".html")
+        b = File.join(dir, File.basename(filename, ".*"))
+        @filename = "#{b}.err.html"
+        @htmlfilename = "#{b}.html"
+      end
+
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
       def add(category, loc, msg, severity: 2)
         @novalid and return
@@ -121,10 +129,10 @@ module Metanorma
         HTML
       end
 
-      def write(file)
-        @filename = file.sub(".err.html", ".html")
-        File.open(file, "w:UTF-8") do |f|
-          f.puts log_hdr(file)
+      def write(file = nil)
+        (!file && @filename) or save_to(file || "metanorma", nil)
+        File.open(@filename, "w:UTF-8") do |f|
+          f.puts log_hdr(@filename)
           @log.each_key { |key| write_key(f, key) }
           f.puts "</body></html>\n"
         end
@@ -167,14 +175,18 @@ module Metanorma
       def loc_link(entry)
         loc = entry[:location]
         loc.nil? || loc.empty? and loc = "--"
-        if /^ID /.match?(loc)
-          loc.sub!(/^ID /, "")
-          loc = @mapid[loc] while @mapid[loc]
-          url = "#{@filename}##{loc}"
-        end
+        loc, url = loc_to_url(loc)
         loc &&= break_up_long_str(loc, 10, 2)
         url and loc = "<a href='#{url}'>#{loc}</a>"
         loc
+      end
+
+      def loc_to_url(loc)
+        /^ID /.match?(loc) or return [loc, nil]
+        loc.sub!(/^ID /, "")
+        loc = @mapid[loc] while @mapid[loc]
+        url = "#{@htmlfilename}##{loc}"
+        [loc, url]
       end
 
       def break_up_long_str(str, threshold, punct)
