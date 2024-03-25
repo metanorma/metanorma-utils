@@ -13,8 +13,8 @@ module Metanorma
 
       def save_to(filename, dir = nil)
         dir ||= File.dirname(filename)
-        filename.sub!(/\.err\.html$/, ".html")
-        b = File.join(dir, File.basename(filename, ".*"))
+        new_fn = filename.sub(/\.err\.html$/, ".html")
+        b = File.join(dir, File.basename(new_fn, ".*"))
         @filename = "#{b}.err.html"
         @htmlfilename = "#{b}.html"
       end
