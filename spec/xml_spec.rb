@@ -114,4 +114,13 @@ RSpec.describe Metanorma::Utils do
       .case_transform_xml("Title <span class='abc'>abc</span> title", :upcase))
       .to be_equivalent_to 'TITLE <span class="abc">ABC</span> TITLE'
   end
+
+  it "detects GUID anchors" do
+    expect(Metanorma::Utils
+      .guid_anchor?("_78e83945-77cf-4330-b804-19ba4f387f51"))
+      .to be_equivalent_to true
+    expect(Metanorma::Utils
+      .guid_anchor?("_78e83945-77cf-4330-b804-19ba4f387f512"))
+      .to be_equivalent_to false
+  end
 end
