@@ -144,6 +144,11 @@ module Metanorma
         end
         x.root.children.to_xml
       end
+
+      def guid_anchor?(id)
+        /^_[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i
+          .match?(id)
+      end
     end
   end
 end
