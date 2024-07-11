@@ -226,4 +226,84 @@ RSpec.describe Metanorma::Utils do
     expect(break_up_test("aaaaaaaAAaaa"))
       .to eq "aaaaaaaAAaaa"
   end
+
+  it "detects line status of document" do
+    input = <<~DOC.lines
+      = Title
+      Document
+      :attr1:
+      :attr2:
+      :attr3:
+
+      == Hello
+
+      A
+      B
+
+      ====
+      C
+      D
+      ====
+
+      [source]
+      ====
+      E
+      F
+      ====
+
+      [pass]
+      ====
+      G
+      H
+      ====
+
+      [pass]
+      I
+      J
+
+      ....
+      K
+      L
+      ....
+
+      ----
+      M
+      N
+      ----
+
+      ++++
+      O
+      P
+      ++++
+
+      Q
+      :attr4:
+      :attr5:
+
+      R
+
+      :attr6: A
+      :attr7:
+
+    DOC
+    pass_status = [
+      true, true, true, true, true, false, # attrs: 5
+      false, false, false, false, false, # clause: 10
+      false, false, false, false, false, # example: 15
+      false, true, true, true, false, false, # source delim: 21
+      false, true, true, true, false, false, # pass delim: 27
+      false, true, true, false, # pass para: 31
+      true, true, true, false, false, # literal: 36
+      true, true, true, false, false, # source: 41
+      true, true, true, false, false, # pass: 46
+      false, false, false, false, # no middoc attr: 50
+      false, false, true, true, false, # middoc attr: 55
+    ]
+    p = Metanorma::Utils::LineStatus.new
+    pass_status.each_with_index do |s, i|
+      p.process(input[i])
+      p.pass == s or warn "Error: line #{i}: #{input[i]}"
+      expect(p.pass).to be s
+    end
+  end
 end
