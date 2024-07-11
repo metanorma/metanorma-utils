@@ -252,10 +252,10 @@ RSpec.describe Metanorma::Utils do
       ====
 
       [pass]
-      ====
+      ____
       G
       H
-      ====
+      ____
 
       [pass]
       I
@@ -276,14 +276,25 @@ RSpec.describe Metanorma::Utils do
       P
       ++++
 
+      ////
       Q
+      R
+      ////
+
+      S
       :attr4:
       :attr5:
 
-      R
+      T
 
       :attr6: A
       :attr7:
+
+      [comment]
+      ****
+      U
+      V
+      ****
 
     DOC
     pass_status = [
@@ -296,8 +307,10 @@ RSpec.describe Metanorma::Utils do
       true, true, true, false, false, # literal: 36
       true, true, true, false, false, # source: 41
       true, true, true, false, false, # pass: 46
-      false, false, false, false, # no middoc attr: 50
-      false, false, true, true, false, # middoc attr: 55
+      true, true, true, false, false, # comment: 51
+      false, false, false, false, # no middoc attr: 55
+      false, false, true, true, false, # middoc attr: 60
+      false, true, true, true, false, false, # comment delim: 66
     ]
     p = Metanorma::Utils::LineStatus.new
     pass_status.each_with_index do |s, i|

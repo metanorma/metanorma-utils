@@ -28,8 +28,9 @@ module Metanorma
         if @middoc_docattr && !/^:[^ :]+:($| )/.match?(text)
           @middoc_docattr = false
           @pass = false
-        elsif (@is_delim && /^(-+|\*+|=+|_+)$/.match?(text)) ||
-            (!@is_delim && !@delimln && /^-----*$|^\.\.\.\.\.*$/.match?(text))
+        elsif (@is_delim && /^(--+|\*\*+|==+|__+)$/.match?(text)) ||
+            (!@is_delim && !@delimln && /^-----*$|^\.\.\.\.\.*$|\/\/\/\/\/*$/
+          .match?(text))
           @delimln = text
           @pass = true
         elsif @pass_delim
@@ -43,7 +44,7 @@ module Metanorma
           @pass = true
           @middoc_docattr = true
         end
-        @is_delim = /^\[(source|listing|literal|pass)\b/.match?(text)
+        @is_delim = /^\[(source|listing|literal|pass|comment)\b/.match?(text)
         @pass_delim = /^\[(pass)\b/.match?(text)
         @prev_line = text.strip
       end
