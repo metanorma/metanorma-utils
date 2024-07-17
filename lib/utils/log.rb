@@ -20,13 +20,13 @@ module Metanorma
       end
 
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
-      def add(category, loc, msg, severity: 2)
+      def add(category, loc, msg, severity: 2, display: true)
         @novalid and return
         @log[category] ||= []
         item = create_entry(loc, msg, severity)
         @log[category] << item
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        suppress_display?(category, loc, msg) or
+        suppress_display?(category, loc, msg, display) or
           warn "#{category}: #{loc}#{msg}"
       end
 
@@ -38,8 +38,9 @@ module Metanorma
         end
       end
 
-      def suppress_display?(category, _loc, _msg)
-        ["Metanorma XML Syntax"].include?(category)
+      def suppress_display?(category, _loc, _msg, display)
+        ["Metanorma XML Syntax", "Relaton"].include?(category) ||
+          !display
       end
 
       def create_entry(loc, msg, severity)

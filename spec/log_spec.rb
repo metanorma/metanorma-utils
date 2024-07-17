@@ -156,33 +156,53 @@ RSpec.describe Metanorma::Utils do
     FileUtils.rm_f("spec/log1.err.html")
   end
 
-  it "suppresses syntax errors from screen display" do
+  it "suppresses errors from screen display" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
     expect { log.add("Category 1", nil, "A") }
       .to output("Category 1: A\n").to_stderr
+    expect { log.add("Category 1", nil, "A", display: false) }
+      .not_to output("Category 1: A\n").to_stderr
     expect { log.add("Metanorma XML Syntax", nil, "A") }
       .not_to output("Metanorma XML Syntax: A\n").to_stderr
+    expect { log.add("Relaton", nil, "A") }
+      .not_to output("Relaton: A\n").to_stderr
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
     expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
-      </head><body><h1>./log.err.html errors</h1>
-      <h2>Category 1</h2>
-      <table border="1">
+      </head>
+      <body><h1>./log.err.html errors</h1>
+       <h2>Category 1</h2>
+       <table border="1">
       #{TBL_HDR}
-      <tbody>
-      <tr class="severity2"><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td><td>2</td></tr>
-      </tbody></table>
-      <h2>Metanorma XML Syntax</h2>
-      <table border="1">
+       <tbody>
+       <tr class="severity2">
+       <td></td><th><code>--</code></th>
+       <td>A</td><td><pre></pre></td><td>2</td></tr>
+       <tr class="severity2">
+       <td></td><th><code>--</code></th>
+       <td>A</td><td><pre></pre></td><td>2</td></tr>
+       </tbody></table>
+       <h2>Metanorma XML Syntax</h2>
+       <table border="1">
       #{TBL_HDR}
-      <tbody>
-      <tr class="severity2"><td></td><th><code>--</code></th><td>A</td><td><pre></pre></td><td>2</td></tr>
-      </tbody></table>
-      </body></html>
+       <tbody>
+       <tr class="severity2">
+       <td></td><th><code>--</code></th>
+       <td>A</td><td><pre></pre></td><td>2</td></tr>
+       </tbody></table>
+       <h2>Relaton</h2>
+       <table border="1">
+      #{TBL_HDR}
+       <tbody>
+       <tr class="severity2">
+       <td></td><th><code>--</code></th>
+       <td>A</td><td><pre></pre></td><td>2</td></tr>
+       </tbody></table>
+       </body></html>
     OUTPUT
   end
 
