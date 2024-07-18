@@ -60,6 +60,6 @@ RSpec.describe Metanorma::Utils do
     hash2 = { a: [3], b: "d", d: 5, e: { f: { h: "2" } }, i: nil }
     expect(hash1.deep_merge(hash2))
       .to eq({ a: [1, 2, 3], b: "d", c: 4,
-               d: 5, e: { f: { g: "1", h: "2" } }, i: 6 })
+               d: 5, e: { f: { g: "1", h: "2" } }, i: nil })
   end
 end

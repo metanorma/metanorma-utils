@@ -61,8 +61,7 @@ module Metanorma
             v1.merge(v2, &merger)
           elsif ::Array === v1 && ::Array === v2
             v1 | v2
-          elsif [:undefined, nil,
-                 :nil].include?(v2)
+          elsif [:undefined].include?(v2)
             v1
           else
             v2
