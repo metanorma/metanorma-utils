@@ -39,6 +39,8 @@ RSpec.describe Metanorma::Utils do
   it "applies smart formatting" do
     expect(Metanorma::Utils.smartformat("A - B A -- B A--B '80s '80' <A>"))
       .to eq "A — B A — B A—B ’80s ‘80’ &lt;A&gt;"
+    expect(Metanorma::Utils.smartformat('注釈を"note to entry"としている。'))
+      .to eq "注釈を“note to entry”としている。"
   end
 
   it "applies en-dash normalisation" do

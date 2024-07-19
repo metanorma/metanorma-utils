@@ -4,6 +4,7 @@ require "sterile"
 require "htmlentities"
 require "nokogiri"
 require "csv"
+require_relative "../sterile/sterile"
 
 module Metanorma
   module Utils
@@ -34,21 +35,26 @@ module Metanorma
         docfile.nil? ? "./" : "#{Pathname.new(docfile).parent}/"
       end
 
-      # TODO needs internationalisation
+      CJK = "\\p{Han}|\\p{Bopomofo}|\\p{Hangul}|\\p{Hiragana}|\\p{Katakana}"
+        .freeze
+
+      # TODO needs internationalisation of quote
       def smartformat(text)
-        HTMLEntities.new.encode(
-          HTMLEntities.new.decode(
-            text.gsub(/ --? /, "&#8201;&#8212;&#8201;")
-            .gsub("--", "&#8212;"),
-          )
-            .smart_format, :basic
+        ret = HTMLEntities.new.decode(
+          text.gsub(/ --? /, "&#8201;&#8212;&#8201;")
+          .gsub("--", "&#8212;"),
         )
+        ret = ret.gsub(%r{(#{CJK})(["'])}o, "\\1\u200a\\2")
+          .gsub(%r{(["'])(#{CJK})}o, "\\1\u200a\\2")
+        ret = ret.smart_format
+        ret = ret.gsub(%r{(#{CJK})\u200a}o, "\\1")
+          .gsub(%r{\u200a(#{CJK})}o, "\\1")
+        HTMLEntities.new.encode(ret, :basic)
       end
 
       def endash_date(elem)
         elem.traverse do |n|
-          next unless n.text?
-
+          n.text? or next
           n.replace(n.text.gsub(/\s+--?\s+/, "&#8211;").gsub("--", "&#8211;"))
         end
       end
@@ -133,7 +139,8 @@ module Metanorma
       # if punct fails, try break on camel case, with soft hyphen
       # break regardless every LONGSTRING_THRESHOLD * LONGSTR_NOPUNCT,
       # with soft hyphen
-      def break_up_long_str(text, threshold = LONGSTR_THRESHOLD, nopunct = LONGSTR_NOPUNCT)
+      def break_up_long_str(text, threshold = LONGSTR_THRESHOLD,
+nopunct = LONGSTR_NOPUNCT)
         /^\s*$/.match?(text) and return text
         text.split(/(?=(?:\s|-))/).map do |w|
           if /^\s*$/.match(text) || (w.size < threshold) then w
