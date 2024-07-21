@@ -76,7 +76,8 @@ RSpec.describe Metanorma::Utils do
   it "deals with eoln in different scripts" do
     input = <<~'INPUT'
       A
-      B
+      _B_
+      C
     INPUT
 
     doc = (Asciidoctor::Document.new input.lines,
@@ -86,13 +87,34 @@ RSpec.describe Metanorma::Utils do
       Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
     end.join
     expect(out).to be_equivalent_to <<~OUTPUT
-      <p>A B</p>
+      <p>A <em>B</em> C</p>
     OUTPUT
     out = Metanorma::Utils.noko("Hans") do |xml|
       Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
     end.join
     expect(out).to be_equivalent_to <<~OUTPUT
-      <p>AB</p>
+      <p>A <em>B</em> C</p>
+    OUTPUT
+
+    input = <<~'INPUT'
+      す
+      _る_
+      場
+    INPUT
+    doc = (Asciidoctor::Document.new input.lines,
+                                     { standalone: false }).parse
+
+    out = Metanorma::Utils.noko do |xml|
+      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
+    end.join
+    expect(out).to be_equivalent_to <<~OUTPUT
+      <p>す<em>る</em>場</p> 
+    OUTPUT
+    out = Metanorma::Utils.noko("Hans") do |xml|
+      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
+    end.join
+    expect(out).to be_equivalent_to <<~OUTPUT
+      <p>す<em>る</em>場</p>
     OUTPUT
   end
 
