@@ -48,20 +48,6 @@ module Metanorma
       # block for processing XML document fragments as XHTML,
       # to allow for HTMLentities
       # Unescape special chars used in Asciidoctor substitution processing
-      def noko(script = "Latn", &block)
-        doc = ::Nokogiri::XML.parse(NOKOHEAD)
-        fragment = doc.fragment("")
-        ::Nokogiri::XML::Builder.with fragment, &block
-        eoln = %w(Hans Hant Jpan).include?(script) ? "" : " "
-        fragment.to_xml(encoding: "US-ASCII", indent: 0,
-                        save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-          .lines.map do |l|
-          l.gsub(/>\n$/, ">").gsub(/\n$/m, eoln).gsub("&#150;", "\u0096")
-            .gsub("&#151;", "\u0097").gsub("&#x96;", "\u0096")
-            .gsub("&#x97;", "\u0097")
-        end
-      end
-
       def noko(_script = "Latn", &block)
         fragment = ::Nokogiri::XML.parse(NOKOHEAD).fragment("")
         ::Nokogiri::XML::Builder.with fragment, &block
@@ -73,6 +59,18 @@ module Metanorma
               .gsub("&#x96;", "\u0096").gsub("&#x97;", "\u0097")
           end
         line_sanitise(ret)
+      end
+
+      def noko(_script = "Latn", &block)
+        fragment = ::Nokogiri::XML.parse(NOKOHEAD).fragment("")
+        ::Nokogiri::XML::Builder.with fragment, &block
+        ret = fragment
+          .to_xml(encoding: "UTF-8", indent: 0,
+                  save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
+            .gsub("&#150;", "\u0096").gsub("&#151;", "\u0097")
+              .gsub("&#x96;", "\u0096").gsub("&#x97;", "\u0097")
+        #line_sanitise(ret)
+        [ret]
       end
 
       # By default, carriage return in source translates to whitespace;
