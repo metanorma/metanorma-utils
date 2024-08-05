@@ -78,7 +78,7 @@ module Metanorma
       # output because of CJK complications
       def line_sanitise(ret)
         ret.size == 1 and return ret
-        (0...ret.size).each do |i|
+        (0...ret.size - 1).each do |i|
           last = firstchar_xml(ret[i].reverse)
           nextfirst = firstchar_xml(ret[i + 1])
           /#{CJK}/o.match?(last) && /#{CJK}/o.match?(nextfirst) or
