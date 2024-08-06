@@ -30,14 +30,14 @@ RSpec.describe Metanorma::Utils do
                                      { standalone: false }).parse
     out = Metanorma::Utils.noko do |xml|
       xml << doc.blocks.first.content
-    end.join
+    end
     expect(out).to be_equivalent_to <<~OUTPUT
       &lt;A&gt; 
     OUTPUT
     out = Metanorma::Utils.noko_html do |xml|
       xml << doc.blocks.first.content
-    end.join
-    expect(out).to be_equivalent_to <<~OUTPUT
+    end
+    expect(out.join).to be_equivalent_to <<~OUTPUT
       &lt;A&gt; 
     OUTPUT
   end
@@ -61,61 +61,31 @@ RSpec.describe Metanorma::Utils do
 
     out = Metanorma::Utils.noko do |xml|
       Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
-    end.join
+    end
     expect(out).to be_equivalent_to <<~OUTPUT
       <p>XYZ</p>
     OUTPUT
     out = Metanorma::Utils.noko do |xml|
       Metanorma::Utils.wrap_in_para(doc2.blocks.first, xml)
-    end.join
+    end
     expect(out).to be_equivalent_to <<~OUTPUT
       <div class="paragraph"><p>A</p></div><div class="paragraph"><p>B</p></div>
     OUTPUT
   end
 
   it "deals with eoln in different scripts" do
-    input = <<~'INPUT'
-      A
-      _B_
-      C
-    INPUT
-
-    doc = (Asciidoctor::Document.new input.lines,
-                                     { standalone: false }).parse
-
-    out = Metanorma::Utils.noko do |xml|
-      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
-    end.join
-    expect(out).to be_equivalent_to <<~OUTPUT
-      <p>A <em>B</em> C</p>
-    OUTPUT
-    out = Metanorma::Utils.noko("Hans") do |xml|
-      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
-    end.join
-    expect(out).to be_equivalent_to <<~OUTPUT
-      <p>A <em>B</em> C</p>
-    OUTPUT
-
-    input = <<~'INPUT'
-      す
-      _る_
-      場
-    INPUT
-    doc = (Asciidoctor::Document.new input.lines,
-                                     { standalone: false }).parse
-
-    out = Metanorma::Utils.noko do |xml|
-      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
-    end.join
-    expect(out).to be_equivalent_to <<~OUTPUT
-      <p>す<em>る</em>場</p> 
-    OUTPUT
-    out = Metanorma::Utils.noko("Hans") do |xml|
-      Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
-    end.join
-    expect(out).to be_equivalent_to <<~OUTPUT
-      <p>す<em>る</em>場</p>
-    OUTPUT
+    input = %w(A <em>B</em> C)
+    expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
+      "A ", "<em>B</em> ", "C"
+    ]
+    input = %w(す <em>る</em> 場)
+    expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
+      "す", "<em>る</em>", "場"
+    ]
+    input = ["す", "<em>る</em>", "場", ""]
+    expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
+      "す", "<em>る</em>", "場", ""
+    ]
   end
 
   it "applies namespace to xpath" do

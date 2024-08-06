@@ -48,49 +48,37 @@ module Metanorma
       # block for processing XML document fragments as XHTML,
       # to allow for HTMLentities
       # Unescape special chars used in Asciidoctor substitution processing
-      def noko(script = "Latn", &block)
-        doc = ::Nokogiri::XML.parse(NOKOHEAD)
-        fragment = doc.fragment("")
-        ::Nokogiri::XML::Builder.with fragment, &block
-        eoln = %w(Hans Hant Jpan).include?(script) ? "" : " "
-        fragment.to_xml(encoding: "US-ASCII", indent: 0,
-                        save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-          .lines.map do |l|
-          l.gsub(/>\n$/, ">").gsub(/\n$/m, eoln).gsub("&#150;", "\u0096")
-            .gsub("&#151;", "\u0097").gsub("&#x96;", "\u0096")
-            .gsub("&#x97;", "\u0097")
-        end
-      end
-
       def noko(_script = "Latn", &block)
         fragment = ::Nokogiri::XML.parse(NOKOHEAD).fragment("")
         ::Nokogiri::XML::Builder.with fragment, &block
-        ret = fragment
+        fragment
           .to_xml(encoding: "UTF-8", indent: 0,
                   save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-          .lines.map do |l|
-            l.rstrip.gsub("&#150;", "\u0096").gsub("&#151;", "\u0097")
-              .gsub("&#x96;", "\u0096").gsub("&#x97;", "\u0097")
-          end
-        line_sanitise(ret)
+          .gsub("&#150;", "\u0096").gsub("&#151;", "\u0097")
+          .gsub("&#x96;", "\u0096").gsub("&#x97;", "\u0097")
       end
 
       # By default, carriage return in source translates to whitespace;
-      # but in CJK, it does not.  We don't want carriage returns in the final
-      # output because of CJK complications
+      # but in CJK, it does not.  (Non-CJK text \n CJK)
       def line_sanitise(ret)
         ret.size == 1 and return ret
-        (0...ret.size).each do |i|
+        (0...(ret.size - 1)).each do |i|
           last = firstchar_xml(ret[i].reverse)
           nextfirst = firstchar_xml(ret[i + 1])
-          /#{CJK}/o.match?(last) && /#{CJK}/o.match?(nextfirst) or
-            ret[i] += " "
+          cjk1 = /#{CJK}/o.match?(last)
+          cjk2 = /#{CJK}/o.match?(nextfirst)
+          text1 = /[^\p{Z}\p{C}]/.match?(last)
+          text2 = /[^\p{Z}\p{C}]/.match?(nextfirst)
+          (cjk1 && (cjk2 || !text2)) and next
+          !text1 && cjk2 and next
+          ret[i] += " "
         end
         ret
       end
 
+      # need to deal with both <em> and its reverse string, >me<
       def firstchar_xml(line)
-        m = /^(<[^>]+>)*(.)/.match(line) or return ""
+        m = /^([<>][^<>]+[<>])*(.)/.match(line) or return ""
         m[2]
       end
 
