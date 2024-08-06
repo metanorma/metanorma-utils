@@ -51,26 +51,11 @@ module Metanorma
       def noko(_script = "Latn", &block)
         fragment = ::Nokogiri::XML.parse(NOKOHEAD).fragment("")
         ::Nokogiri::XML::Builder.with fragment, &block
-        ret = fragment
+        fragment
           .to_xml(encoding: "UTF-8", indent: 0,
                   save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-          .lines.map do |l|
-            l.rstrip.gsub("&#150;", "\u0096").gsub("&#151;", "\u0097")
-              .gsub("&#x96;", "\u0096").gsub("&#x97;", "\u0097")
-          end
-        line_sanitise(ret)
-      end
-
-      def noko(_script = "Latn", &block)
-        fragment = ::Nokogiri::XML.parse(NOKOHEAD).fragment("")
-        ::Nokogiri::XML::Builder.with fragment, &block
-        ret = fragment
-          .to_xml(encoding: "UTF-8", indent: 0,
-                  save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
-            .gsub("&#150;", "\u0096").gsub("&#151;", "\u0097")
-              .gsub("&#x96;", "\u0096").gsub("&#x97;", "\u0097")
-        #line_sanitise(ret)
-        [ret]
+          .gsub("&#150;", "\u0096").gsub("&#151;", "\u0097")
+          .gsub("&#x96;", "\u0096").gsub("&#x97;", "\u0097")
       end
 
       # By default, carriage return in source translates to whitespace;
@@ -78,7 +63,7 @@ module Metanorma
       # output because of CJK complications
       def line_sanitise(ret)
         ret.size == 1 and return ret
-        (0...ret.size - 1).each do |i|
+        (0...(ret.size - 1)).each do |i|
           last = firstchar_xml(ret[i].reverse)
           nextfirst = firstchar_xml(ret[i + 1])
           /#{CJK}/o.match?(last) && /#{CJK}/o.match?(nextfirst) or
