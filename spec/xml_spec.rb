@@ -82,6 +82,10 @@ RSpec.describe Metanorma::Utils do
     expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
       "す", "<em>る</em>", "場"
     ]
+    input = ["す", "<em>る</em>", "場", ""]
+    expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
+      "す", "<em>る</em>", "場", ""
+    ]
   end
 
   it "applies namespace to xpath" do

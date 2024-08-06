@@ -59,21 +59,26 @@ module Metanorma
       end
 
       # By default, carriage return in source translates to whitespace;
-      # but in CJK, it does not.  We don't want carriage returns in the final
-      # output because of CJK complications
+      # but in CJK, it does not.  (Non-CJK text \n CJK)
       def line_sanitise(ret)
         ret.size == 1 and return ret
         (0...(ret.size - 1)).each do |i|
           last = firstchar_xml(ret[i].reverse)
           nextfirst = firstchar_xml(ret[i + 1])
-          /#{CJK}/o.match?(last) && /#{CJK}/o.match?(nextfirst) or
-            ret[i] += " "
+          cjk1 = /#{CJK}/o.match?(last)
+          cjk2 = /#{CJK}/o.match?(nextfirst)
+          text1 = /[^\p{Z}\p{C}]/.match?(last)
+          text2 = /[^\p{Z}\p{C}]/.match?(nextfirst)
+          (cjk1 && (cjk2 || !text2)) and next
+          !text1 && cjk2 and next
+          ret[i] += " "
         end
         ret
       end
 
+      # need to deal with both <em> and its reverse string, >me<
       def firstchar_xml(line)
-        m = /^(<[^>]+>)*(.)/.match(line) or return ""
+        m = /^([<>][^<>]+[<>])*(.)/.match(line) or return ""
         m[2]
       end
 
