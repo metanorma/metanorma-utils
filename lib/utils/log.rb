@@ -91,7 +91,7 @@ module Metanorma
         if node.respond_to?(:line) && !node.line.nil?
           "#{'%06d' % node.line}"
         elsif /^XML Line /.match?(msg)
-          msg.sub(/^XML Line /, "").sub(/:.*$/, "")
+          msg.sub(/^XML Line /, "").sub(/(^[^:]+):.*$/, "\\1")
         else
           "000000"
         end

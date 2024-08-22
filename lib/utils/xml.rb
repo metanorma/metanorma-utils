@@ -107,7 +107,7 @@ module Metanorma
 
       def numeric_escapes(xml)
         c = HTMLEntities.new
-        xml.split(/(&[^ \r\n\t#;]+;)/).map do |t|
+        xml.split(/(&[^ \r\n\t#&;]+;)/).map do |t|
           if /^(&[^ \t\r\n#;]+;)/.match?(t)
             c.encode(c.decode(t), :hexadecimal)
           else t

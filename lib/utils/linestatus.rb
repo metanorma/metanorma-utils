@@ -29,7 +29,7 @@ module Metanorma
           @middoc_docattr = false
           @pass = false
         elsif (@is_delim && /^(--+|\*\*+|==+|__+)$/.match?(text)) ||
-            (!@is_delim && !@delimln && /^-----*$|^\.\.\.\.\.*$|\/\/\/\/\/*$/
+            (!@is_delim && !@delimln && /^-----*$|^\.\.\.\.\.*$|^\/\/\/\/\/*$/
           .match?(text))
           @delimln = text
           @pass = true
