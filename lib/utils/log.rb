@@ -3,12 +3,13 @@ require "htmlentities"
 module Metanorma
   module Utils
     class Log
-      attr_writer :xml
+      attr_writer :xml, :suppress_log
 
       def initialize
         @log = {}
         @c = HTMLEntities.new
         @mapid = {}
+        @suppress_log = { severity: [], category: [] }
       end
 
       def to_ncname(tag)
@@ -25,7 +26,7 @@ module Metanorma
 
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
       def add(category, loc, msg, severity: 2, display: true)
-        @novalid || suppress_log?(category, msg) and return
+        @novalid || suppress_log?(category, severity, msg) and return
         @log[category] ||= []
         item = create_entry(loc, msg, severity)
         @log[category] << item
@@ -42,8 +43,10 @@ module Metanorma
         end
       end
 
-      def suppress_log?(category, msg)
-        category == "Relaton" && /^Fetching /.match?(msg)
+      def suppress_log?(category, severity, msg)
+        category == "Relaton" && /^Fetching /.match?(msg) ||
+          @suppress_log[:severity].include?(severity) ||
+          @suppress_log[:category].include?(category)
       end
 
       def suppress_display?(category, _loc, _msg, display)

@@ -218,6 +218,51 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
+  it "suppresses errors from log" do
+    FileUtils.rm_f("log.err.html")
+    log = Metanorma::Utils::Log.new
+    log.suppress_log = { severity: [2, 3],
+                         category: ["Category 1", "Category 2"] }
+    expect { log.add("Category 1", nil, "A", severity: 1) }
+      .not_to output("Category 1: A\n").to_stderr
+    expect { log.add("Category 1", nil, "B", severity: 2) }
+      .not_to output("Category 1: B\n").to_stderr
+    expect { log.add("Category 1", nil, "C", severity: 3) }
+      .not_to output("Category 1: C\n").to_stderr
+    expect { log.add("Category 2", nil, "A", severity: 1) }
+      .not_to output("Category 2: A\n").to_stderr
+    expect { log.add("Category 2", nil, "B", severity: 2) }
+      .not_to output("Category 2: B\n").to_stderr
+    expect { log.add("Category 2", nil, "C", severity: 3) }
+      .not_to output("Category 2: C\n").to_stderr
+    expect { log.add("Category 3", nil, "A", severity: 1) }
+      .to output("Category 3: A\n").to_stderr
+    expect { log.add("Category 3", nil, "B", severity: 2) }
+      .not_to output("Category 3: B\n").to_stderr
+    expect { log.add("Category 3", nil, "C", severity: 3) }
+      .not_to output("Category 3: C\n").to_stderr
+    log.write("log.txt")
+    expect(File.exist?("log.err.html")).to be true
+    file = File.read("log.err.html", encoding: "utf-8")
+    expect(file).to be_equivalent_to <<~OUTPUT
+      <html><head><title>./log.err.html errors</title>
+      #{HTML_HDR}
+      </head>
+      <body><h1>./log.err.html errors</h1>
+       <ul><li><p><b><a href="#Category_3">Category 3</a></b>: Severity 1: <b>1</b> errors</p></li>
+       </ul>
+       <h2 id="Category_3">Category 3</h2>
+       <table border="1">
+      #{TBL_HDR}
+       <tbody>
+       <tr class="severity1">
+       <td></td><th><code>--</code></th>
+       <td>A</td><td><pre></pre></td><td>1</td></tr>
+       </tbody></table>
+       </body></html>
+    OUTPUT
+  end
+
   it "deals with illegal characters in log" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
