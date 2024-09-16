@@ -75,14 +75,22 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <h2>Category 1</h2>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 0: <b>1</b> errors; Severity 1: <b>1</b> errors</p></li>
+
+       <li><p><b><a href="#Category_2">Category 2</a></b>: Severity 0: <b>1</b> errors; Severity 1: <b>1</b> errors; Severity 2: <b>1</b> errors</p></li>
+
+       <li><p><b><a href="#Category_3">Category 3</a></b>: Severity 2: <b>3</b> errors</p></li>
+
+       <li><p><b><a href="#Category_4">Category 4</a></b>: Severity 2: <b>4</b> errors</p></li>
+       </ul>
+       <h2 id="Category_1">Category 1</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>
       <tr class="severity0"><td></td><th><code>--</code></th><td>Message 1</td><td><pre></pre></td><td>0</td></tr>
       <tr class="severity1"><td></td><th><code>node</code></th><td>Message 2</td><td><pre></pre></td><td>1</td></tr>
       </tbody></table>
-      <h2>Category 2</h2>
+      <h2 id="Category_2">Category 2</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>
@@ -95,7 +103,7 @@ RSpec.describe Metanorma::Utils do
       c
       &lt;/b&gt;</pre></td><td>2</td></tr>
       </tbody></table>
-      <h2>Category 3</h2>
+      <h2 id="Category_3">Category 3</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>
@@ -103,7 +111,7 @@ RSpec.describe Metanorma::Utils do
       <tr class="severity2"><td></td><th><code>--</code></th><td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
       <tr class="severity2"><td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th><td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
       </tbody></table>
-      <h2>Category 4</h2>
+      <h2 id="Category_4">Category 4</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>
@@ -175,7 +183,11 @@ RSpec.describe Metanorma::Utils do
       #{HTML_HDR}
       </head>
       <body><h1>./log.err.html errors</h1>
-       <h2>Category 1</h2>
+       <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>2</b> errors</p></li>
+       <li><p><b><a href="#Metanorma_XML_Syntax">Metanorma XML Syntax</a></b>: Severity 2: <b>1</b> errors</p></li>
+       <li><p><b><a href="#Relaton">Relaton</a></b>: Severity 2: <b>1</b> errors</p></li>
+       </ul>
+       <h2 id="Category_1">Category 1</h2>
        <table border="1">
       #{TBL_HDR}
        <tbody>
@@ -186,7 +198,7 @@ RSpec.describe Metanorma::Utils do
        <td></td><th><code>--</code></th>
        <td>A</td><td><pre></pre></td><td>2</td></tr>
        </tbody></table>
-       <h2>Metanorma XML Syntax</h2>
+       <h2 id="Metanorma_XML_Syntax">Metanorma XML Syntax</h2>
        <table border="1">
       #{TBL_HDR}
        <tbody>
@@ -194,7 +206,7 @@ RSpec.describe Metanorma::Utils do
        <td></td><th><code>--</code></th>
        <td>A</td><td><pre></pre></td><td>2</td></tr>
        </tbody></table>
-       <h2>Relaton</h2>
+       <h2 id="Relaton">Relaton</h2>
        <table border="1">
       #{TBL_HDR}
        <tbody>
@@ -217,7 +229,9 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <h2>Category 1</h2>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+       </ul>
+       <h2 id="Category_1">Category 1</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>
@@ -240,7 +254,9 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <h2>Category 1</h2>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+       </ul>
+       <h2 id="Category_1">Category 1</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>
@@ -271,7 +287,9 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <h2>Category 2</h2>
+      <ul><li><p><b><a href="#Category_2">Category 2</a></b>: Severity 2: <b>1</b> errors</p></li>
+      </ul>
+      <h2 id="Category_2">Category 2</h2>
       <table border="1">
       #{TBL_HDR}
       <tbody>

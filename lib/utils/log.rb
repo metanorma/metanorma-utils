@@ -11,6 +11,10 @@ module Metanorma
         @mapid = {}
       end
 
+      def to_ncname(tag)
+        ::Metanorma::Utils.to_ncname(tag)
+      end
+
       def save_to(filename, dir = nil)
         dir ||= File.dirname(filename)
         new_fn = filename.sub(/\.err\.html$/, ".html")
@@ -21,7 +25,7 @@ module Metanorma
 
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
       def add(category, loc, msg, severity: 2, display: true)
-        @novalid and return
+        @novalid || suppress_log?(category, msg) and return
         @log[category] ||= []
         item = create_entry(loc, msg, severity)
         @log[category] << item
@@ -36,6 +40,10 @@ module Metanorma
             e[:severity].zero? and m << e[:message]
           end
         end
+      end
+
+      def suppress_log?(category, msg)
+        category == "Relaton" && /^Fetching /.match?(msg)
       end
 
       def suppress_display?(category, _loc, _msg, display)
@@ -127,7 +135,26 @@ module Metanorma
           .severity3 { font-style: italic; color: grey; }
           </style>
           </head><body><h1>#{file} errors</h1>
+          <ul>#{log_index}</ul>
         HTML
+      end
+
+      def log_index
+        @log.each_with_object([]) do |(k, v), m|
+          m << <<~HTML
+            <li><p><b><a href="##{to_ncname(k)}">#{k}</a></b>: #{index_severities(v)}</p></li>
+          HTML
+        end.join("\n")
+      end
+
+      def index_severities(entries)
+        s = entries.each_with_object({}) do |e, m|
+          m[e[:severity]] ||= 0
+          m[e[:severity]] += 1
+        end.compact
+        s.keys.sort.map do |k|
+          "Severity #{k}: <b>#{s[k]}</b> errors"
+        end.join("; ")
       end
 
       def write(file = nil)
@@ -141,7 +168,7 @@ module Metanorma
 
       def write_key(file, key)
         file.puts <<~HTML
-          <h2>#{key}</h2>\n<table border="1">
+          <h2 id="#{to_ncname(key)}">#{key}</h2>\n<table border="1">
           <thead><th width="5%">Line</th><th width="20%">ID</th>
           <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
           <tbody>
