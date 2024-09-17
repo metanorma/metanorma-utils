@@ -9,7 +9,7 @@ module Metanorma
         @log = {}
         @c = HTMLEntities.new
         @mapid = {}
-        @suppress_log = { severity: [], category: [] }
+        @suppress_log = { severity: 4, category: [] }
       end
 
       def to_ncname(tag)
@@ -45,7 +45,7 @@ module Metanorma
 
       def suppress_log?(category, severity, msg)
         category == "Relaton" && /^Fetching /.match?(msg) ||
-          @suppress_log[:severity].include?(severity) ||
+          @suppress_log[:severity] <= severity ||
           @suppress_log[:category].include?(category)
       end
 

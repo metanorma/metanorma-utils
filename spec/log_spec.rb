@@ -221,7 +221,7 @@ RSpec.describe Metanorma::Utils do
   it "suppresses errors from log" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
-    log.suppress_log = { severity: [2, 3],
+    log.suppress_log = { severity: 2,
                          category: ["Category 1", "Category 2"] }
     expect { log.add("Category 1", nil, "A", severity: 1) }
       .not_to output("Category 1: A\n").to_stderr
