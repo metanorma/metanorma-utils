@@ -2,6 +2,7 @@ require "asciidoctor"
 require "tempfile"
 require "sterile"
 require "htmlentities"
+require 'htmlentities/encoder'
 require "nokogiri"
 require "csv"
 require_relative "../sterile/sterile"
@@ -40,7 +41,8 @@ module Metanorma
 
       # TODO needs internationalisation of quote
       def smartformat(text)
-        ret = HTMLEntities.new.decode(
+        e = htmlEntities
+        ret = e.decode(
           text.gsub(/ --? /, "&#8201;&#8212;&#8201;")
           .gsub("--", "&#8212;"),
         )
@@ -49,7 +51,7 @@ module Metanorma
         ret = ret.smart_format
         ret = ret.gsub(%r{(#{CJK})\u200a}o, "\\1")
           .gsub(%r{\u200a(#{CJK})}o, "\\1")
-        HTMLEntities.new.encode(ret, :basic)
+        encoderBasic.encode(ret)
       end
 
       def endash_date(elem)
@@ -187,6 +189,21 @@ nopunct = LONGSTR_NOPUNCT)
           separator = "\u00ad"
         end
         [s, separator]
+      end
+
+      private
+
+      def encoderBasic
+        Thread.current[:encoderHex] ||= encoder = HTMLEntities::Encoder.new("xhtml1", [:basic])
+      end
+      def htmlEntities
+        Thread.current[:html_entities] ||= HTMLEntities.new
+      end
+      def encoderHex
+        Thread.current[:encoderHex] ||= encoder = HTMLEntities::Encoder.new("xhtml1", [:hexadecimal])
+      end
+      def encoderBasicHex
+        Thread.current[:encoderHex] ||= encoder = HTMLEntities::Encoder.new("xhtml1", [:basic, :hexadecimal])
       end
     end
   end

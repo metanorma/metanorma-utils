@@ -23,13 +23,12 @@ module Metanorma
     class << self
       def attr_code(attributes)
         attributes.compact.transform_values do |v|
-          v.is_a?(String) ? HTMLEntities.new.decode(v) : v
+          v.is_a?(String) ? htmlEntities.decode(v) : v
         end
       end
 
       def to_ncname(tag, asciionly: true)
-        asciionly and tag = HTMLEntities.new.encode(tag, :basic,
-                                                    :hexadecimal)
+        asciionly and tag = encoderBasicHex.encode(tag)
         start = tag[0]
         ret1 = if %r([#{NAMECHAR}#])o.match?(start)
                  "_"
@@ -41,8 +40,7 @@ module Metanorma
       end
 
       def anchor_or_uuid(node = nil)
-        uuid = UUIDTools::UUID.random_create
-        node.nil? || node.id.nil? || node.id.empty? ? "_#{uuid}" : node.id
+        node.nil? || node.id.nil? || node.id.empty? ? "_#{UUIDTools::UUID.random_create}" : node.id
       end
 
       # block for processing XML document fragments as XHTML,
@@ -106,10 +104,11 @@ module Metanorma
       end
 
       def numeric_escapes(xml)
-        c = HTMLEntities.new
+        e = htmlEntities
+        encoder = encoderHex
         xml.split(/(&[^ \r\n\t#&;]+;)/).map do |t|
           if /^(&[^ \t\r\n#;]+;)/.match?(t)
-            c.encode(c.decode(t), :hexadecimal)
+            encoder.encode(e.decode(t))
           else t
           end
         end.join
@@ -168,6 +167,15 @@ module Metanorma
       def guid_anchor?(id)
         /^_[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i
           .match?(id)
+      end
+
+      def ancestor_include?(elem, ancestors)
+        path = ancestor_names(elem)
+        !path.intersection(ancestors).empty?
+      end
+
+      def ancestor_names(elem)
+        elem.path.sub(/^\//, "").split(%r{/}).tap(&:pop).map { |s| s.gsub(/\[\d+\]/, '') }
       end
     end
   end
