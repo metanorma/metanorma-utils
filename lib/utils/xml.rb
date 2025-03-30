@@ -87,7 +87,7 @@ module Metanorma
         fragment.to_xml(encoding: "UTF-8", indent: 0,
                         save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
           .lines.map do |l|
-          l.gsub(/\s*\n/, "")
+          l.gsub(/\s*\n\z/, "")
         end
       end
 
@@ -97,10 +97,13 @@ module Metanorma
       end
 
       def ns(xpath)
-        xpath.gsub(%r{/([a-zA-Z])}, "/xmlns:\\1")
-          .gsub(%r{::([a-zA-Z])}, "::xmlns:\\1")
-          .gsub(%r{\[([a-zA-Z][a-z0-9A-Z@/-]* ?=)}, "[xmlns:\\1")
-          .gsub(%r{\[([a-zA-Z][a-z0-9A-Z@/-]*[/\[\]])}, "[xmlns:\\1")
+        @@ns_cache ||= {}
+        cached = @@ns_cache[xpath] and return cached
+        ret = xpath.gsub(%r{/([a-zA-Z])}, "/xmlns:\\1")
+                   .gsub(%r{::([a-zA-Z])}, "::xmlns:\\1")
+                   .gsub(%r{\[([a-zA-Z][a-z0-9A-Z@/-]* ?=)}, "[xmlns:\\1")
+                   .gsub(%r{\[([a-zA-Z][a-z0-9A-Z@/-]*[/\[\]])}, "[xmlns:\\1")
+        return @@ns_cache[xpath] = ret
       end
 
       def numeric_escapes(xml)
@@ -176,6 +179,25 @@ module Metanorma
 
       def ancestor_names(elem)
         elem.path.sub(/^\//, "").split(%r{/}).tap(&:pop).map { |s| s.gsub(/\[\d+\]/, '') }
+      end
+
+      def fast_ancestor_names(elem, filter=[], include_self=false)
+        ancestors = elem.instance_variable_get(:@ancestor_cache) if elem.instance_variable_defined?(:@ancestor_cache)
+        if ancestors.nil?
+          ancestors = []
+          if elem.respond_to?(:parent) and p = elem.parent
+            ancestors << p.name
+            ancestors += fast_ancestor_names(p)
+          end
+          elem.instance_variable_set(:@ancestor_cache, ancestors)
+          # puts elem.path
+          # puts "#{ancestors.length} #{ancestors}"
+        end
+        if include_self
+          ancestors = [elem.name] + ancestors
+        end
+        return ancestors if filter.empty?
+        ancestors.select { |name| section_names.include?(name) }
       end
     end
   end
