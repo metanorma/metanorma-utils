@@ -190,14 +190,12 @@ module Metanorma
             ancestors += fast_ancestor_names(p)
           end
           elem.instance_variable_set(:@ancestor_cache, ancestors)
-          # puts elem.path
-          # puts "#{ancestors.length} #{ancestors}"
         end
         if include_self
           ancestors = [elem.name] + ancestors
         end
         return ancestors if filter.empty?
-        ancestors.select { |name| section_names.include?(name) }
+        ancestors.select { |name| filter.include?(name) }
       end
     end
   end

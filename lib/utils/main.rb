@@ -194,16 +194,16 @@ nopunct = LONGSTR_NOPUNCT)
       private
 
       def encoderBasic
-        Thread.current[:encoderHex] ||= encoder = HTMLEntities::Encoder.new("xhtml1", [:basic])
+        Thread.current[:encoderHex] ||= HTMLEntities::Encoder.new("xhtml1", [:basic])
       end
       def htmlEntities
         Thread.current[:html_entities] ||= HTMLEntities.new
       end
       def encoderHex
-        Thread.current[:encoderHex] ||= encoder = HTMLEntities::Encoder.new("xhtml1", [:hexadecimal])
+        Thread.current[:encoderHex] ||= HTMLEntities::Encoder.new("xhtml1", [:hexadecimal])
       end
       def encoderBasicHex
-        Thread.current[:encoderHex] ||= encoder = HTMLEntities::Encoder.new("xhtml1", [:basic, :hexadecimal])
+        Thread.current[:encoderHex] ||= HTMLEntities::Encoder.new("xhtml1", [:basic, :hexadecimal])
       end
     end
   end
