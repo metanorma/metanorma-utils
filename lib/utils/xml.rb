@@ -1,7 +1,6 @@
 require "asciidoctor"
 require "tempfile"
 require "uuidtools"
-require "htmlentities"
 require "nokogiri"
 
 module Metanorma
@@ -23,12 +22,12 @@ module Metanorma
     class << self
       def attr_code(attributes)
         attributes.compact.transform_values do |v|
-          v.is_a?(String) ? htmlEntities.decode(v) : v
+          v.is_a?(String) ? decoder.decode(v) : v
         end
       end
 
       def to_ncname(tag, asciionly: true)
-        asciionly and tag = encoderBasicHex.encode(tag)
+        asciionly and tag = encoder_basic_hex.encode(tag)
         start = tag[0]
         ret1 = if %r([#{NAMECHAR}#])o.match?(start)
                  "_"
@@ -107,11 +106,11 @@ module Metanorma
       end
 
       def numeric_escapes(xml)
-        e = htmlEntities
-        encoder = encoderHex
+        d = decoder
+        e = encoder_hex
         xml.split(/(&[^ \r\n\t#&;]+;)/).map do |t|
           if /^(&[^ \t\r\n#;]+;)/.match?(t)
-            encoder.encode(e.decode(t))
+            e.encode(d.decode(t))
           else t
           end
         end.join
