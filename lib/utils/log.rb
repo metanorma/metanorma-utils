@@ -1,4 +1,5 @@
 require "htmlentities"
+require "htmlentities/encoder"
 
 module Metanorma
   module Utils
@@ -7,7 +8,7 @@ module Metanorma
 
       def initialize
         @log = {}
-        @c = HTMLEntities.new
+        @e = HTMLEntities::Encoder.new('xhtml1', [:basic])
         @mapid = {}
         @suppress_log = { severity: 4, category: [] }
       end
@@ -225,7 +226,7 @@ module Metanorma
       end
 
       def write_entry(file, entry)
-        entry[:context] &&= @c.encode(break_up_long_str(entry[:context], 40, 2))
+        entry[:context] &&= @e.encode(break_up_long_str(entry[:context], 40, 2))
         file.print <<~HTML
           <tr class="severity#{entry[:severity]}">
           <td>#{entry[:line]}</td><th><code>#{entry[:location]}</code></th>
