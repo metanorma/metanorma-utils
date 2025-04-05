@@ -3,7 +3,7 @@ require "objspace"
 module Metanorma
   module Utils
     module Debug
-      def self.count_objects()
+      def self.count_objects
         gc.start
         puts "live nokogiri::xml::document count: #{objectspace.each_object(nokogiri::xml::document).count}"
       end
