@@ -106,6 +106,8 @@ module Metanorma
       end
 
       def numeric_escapes(xml)
+        return xml unless xml.include?('&')
+
         d = decoder
         e = encoder_hex
         xml.split(/(&[^ \r\n\t#&;]+;)/).map do |t|
