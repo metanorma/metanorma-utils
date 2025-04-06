@@ -4,8 +4,8 @@ module Metanorma
   module Utils
     module Debug
       def self.count_objects
-        gc.start
-        puts "live nokogiri::xml::document count: #{objectspace.each_object(nokogiri::xml::document).count}"
+        GC.start
+        puts "live nokogiri::xml::document count: #{ObjectSpace.each_object(Nokogiri::XML::Document).count}"
       end
 
       def self.dump_memory_usage
