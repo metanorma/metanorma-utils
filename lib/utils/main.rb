@@ -144,8 +144,9 @@ module Metanorma
       def break_up_long_str(text, threshold = LONGSTR_THRESHOLD,
 nopunct = LONGSTR_NOPUNCT)
         /^\s*$/.match?(text) and return text
+        whitespace_match = /^\s*$/.match(text)
         text.split(/(?=(?:\s|-))/).map do |w|
-          if /^\s*$/.match(text) || (w.size < threshold) then w
+          if whitespace_match || (w.size < threshold) then w
           else
             w.scan(/.{,#{threshold}}/o).map.with_index do |w1, i|
               w1.size < threshold ? w1 : break_up_long_str1(w1, i + 1, nopunct)
