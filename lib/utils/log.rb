@@ -43,6 +43,14 @@ module Metanorma
         end
       end
 
+      def messages
+        @log.values.each_with_object([]) do |v, m|
+          v.each do |e|
+            m << e
+          end
+        end
+      end
+
       def suppress_log?(category, severity, msg)
         category == "Relaton" && /^Fetching /.match?(msg) ||
           @suppress_log[:severity] <= severity ||

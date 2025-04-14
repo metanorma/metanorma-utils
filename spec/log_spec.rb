@@ -68,6 +68,32 @@ RSpec.describe Metanorma::Utils do
     log.mapid("abc", "def")
     log.write("log.txt")
     expect(log.abort_messages).to be_equivalent_to ["Message 1", "Message 4"]
+    expect(log.messages).to be_equivalent_to [
+      { location: "", severity: 0, message: "Message 1", context: "",
+        line: "000000" },
+      { location: "node", severity: 1, message: "Message 2", context: nil,
+        line: "000000" },
+      { location: "xyz", severity: 2, message: "Message 3",
+        context: "<b id=\"xyz\">\nc\n</b>", line: "000003" },
+      { location: "", severity: 0, message: "Message 4",
+        context: "<a>\n<b id=\"xyz\">\nc\n</b></a>", line: "000002" },
+      { location: "", severity: 1, message: "Message 5", context: "Context",
+        line: "000002" },
+      { location: "", severity: 2, message: "Message 6.1", context: "ID: ",
+        line: "000000" },
+      { location: "B", severity: 2, message: "Message 6.2", context: "ID: B",
+        line: "000000" },
+      { location: "", severity: 2, message: "Message 6.3", context: "ID: ",
+        line: "000000" },
+      { location: "Asciidoctor Line 000012", severity: 2,
+        message: "XML Line 1212:40, Message 7.1", context: "Line: 12", line: "1212" },
+      { location: "??", severity: 2, message: "Message 7.2",
+        context: "Line: ", line: "000000" },
+      { location: "XML Line 000013", severity: 2, message: "Message 7.3",
+        context: "Line: 13", line: "000013" },
+      { location: "??", severity: 2, message: "Message 7.4",
+        context: "Line: ", line: "000000" },
+    ]
     expect(File.exist?("log.err.html")).to be true
     expect(File.exist?("log.txt")).to be false
     file = File.read("log.err.html", encoding: "utf-8")
