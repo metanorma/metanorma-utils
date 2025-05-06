@@ -126,9 +126,9 @@ module Metanorma
 
       # all element/attribute pairs that are ID anchors in Metanorma
       def anchor_attributes
-        [%w[* id], %w[* bibitemid], %w[review from],
-         %w[review to], %w[index to], %w[xref target],
-         %w[callout target], %w[location target]]
+         [%w(review from), %w(review to), %w(callout target), %w(eref bibitemid),
+         %w(citation bibitemid), %w(xref target), %w(xref to), %w(label for),
+         %w(location target), %w(index to), %w(termsource bibitemid)]
       end
 
       # convert definition list term/value pair into Nokogiri XML attribute
