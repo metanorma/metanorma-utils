@@ -135,7 +135,7 @@ module Metanorma
                 %w(fmt-review-start source), %w(fmt-review-start end),
                 %w(fmt-review-start target), %w(fmt-review-end source),
                 %w(fmt-review-end start), %w(fmt-review-end target)]
-        presxml ? ret : ret + ret1
+        presxml ? ret + ret1 : ret
       end
 
       # convert definition list term/value pair into Nokogiri XML attribute
