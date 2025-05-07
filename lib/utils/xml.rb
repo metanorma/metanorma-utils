@@ -69,7 +69,7 @@ module Metanorma
           cjk2 = /#{CJK}/o.match?(nextfirst)
           text1 = /[^\p{Z}\p{C}]/.match?(last)
           text2 = /[^\p{Z}\p{C}]/.match?(nextfirst)
-          (cjk1 && (cjk2 || !text2)) and next
+          cjk1 && (cjk2 || !text2) and next
           !text1 && cjk2 and next
           ret[i] += " "
         end
@@ -125,10 +125,17 @@ module Metanorma
       end
 
       # all element/attribute pairs that are ID anchors in Metanorma
-      def anchor_attributes
-         [%w(review from), %w(review to), %w(callout target), %w(eref bibitemid),
-         %w(citation bibitemid), %w(xref target), %w(xref to), %w(label for),
-         %w(location target), %w(index to), %w(termsource bibitemid)]
+      def anchor_attributes(presxml: false)
+        ret = [%w(review from), %w(review to), %w(callout target), %w(xref to),
+               %w(eref bibitemid), %w(citation bibitemid), %w(xref target),
+               %w(label for), %w(location target), %w(index to),
+               %w(termsource bibitemid), %w(admonition target)]
+        ret1 = [%w(fn target), %w(semx source), %w(fmt-title source),
+                %w(fmt-xref-label container), %w(fmt-fn-body target),
+                %w(fmt-review-start source), %w(fmt-review-start end),
+                %w(fmt-review-start target), %w(fmt-review-end source),
+                %w(fmt-review-end start), %w(fmt-review-end target)]
+        presxml ? ret : ret + ret1
       end
 
       # convert definition list term/value pair into Nokogiri XML attribute
