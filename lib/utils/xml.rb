@@ -131,6 +131,7 @@ module Metanorma
                %w(label for), %w(location target), %w(index to),
                %w(termsource bibitemid), %w(admonition target)]
         ret1 = [%w(fn target), %w(semx source), %w(fmt-title source),
+                %w(fmt-xref to), %w(fmt-xref target), %w(fmt-eref bibitemid),
                 %w(fmt-xref-label container), %w(fmt-fn-body target),
                 %w(fmt-review-start source), %w(fmt-review-start end),
                 %w(fmt-review-start target), %w(fmt-review-end source),
