@@ -86,7 +86,7 @@ module Metanorma
           while !node.nil? && node["id"].nil? && node.respond_to?(:parent)
             node = node.parent
           end
-          node.respond_to?(:parent) ? "ID #{node['id']}" : ""
+          node.respond_to?(:parent) ? "ID #{node['anchor'] || node['id']}" : ""
         elsif node.is_a? String then node
         elsif node.respond_to?(:lineno) && !node.lineno.nil? &&
             !node.lineno.empty?
@@ -224,7 +224,7 @@ module Metanorma
         /^ID /.match?(loc) or return [loc, nil]
         loc.sub!(/^ID /, "")
         loc = @mapid[loc] while @mapid[loc]
-        url = "#{@htmlfilename}##{loc}"
+        url = "#{@htmlfilename}##{to_ncname loc}"
         [loc, url]
       end
 

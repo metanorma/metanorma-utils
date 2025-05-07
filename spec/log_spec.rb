@@ -47,7 +47,9 @@ RSpec.describe Metanorma::Utils do
       <a>
       <b id="xyz">
       c
-      </b></a></xml>
+      </b>
+      <c id="abc" anchor="Löwe"/>
+      </a></xml>
     INPUT
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new
@@ -57,6 +59,7 @@ RSpec.describe Metanorma::Utils do
     log.add("Category 2", xml.at("//xml/a"), "Message 4", severity: 0)
     log.add("Category 2", xml.at("//xml/a"), "Message 5 :: Context",
             severity: 1)
+    log.add("Category 2", xml.at("//xml/a/c"), "Message 6", severity: 1)
     log.add("Category 3", id1, "Message 6.1", severity: 2)
     log.add("Category 3", id2, "Message 6.2")
     log.add("Category 3", id3, "Message 6.3")
@@ -65,7 +68,7 @@ RSpec.describe Metanorma::Utils do
     log.add("Category 4", li3, "Message 7.3")
     log.add("Category 4", li4, "Message 7.4")
     log.mapid("xyz", "abc")
-    log.mapid("abc", "def")
+    log.mapid("abc", "ghi")
     log.write("log.txt")
     expect(log.abort_messages).to be_equivalent_to ["Message 1", "Message 4"]
     expect(log.messages).to be_equivalent_to [
@@ -78,6 +81,8 @@ RSpec.describe Metanorma::Utils do
       { location: "", severity: 0, message: "Message 4",
         context: "<a>\n<b id=\"xyz\">\nc\n</b></a>", line: "000002" },
       { location: "", severity: 1, message: "Message 5", context: "Context",
+        line: "000002" },
+      { location: "def", severity: 1, message: "Message 6", context: "<c id=\"abc\" anchor=\"def\"/>",
         line: "000002" },
       { location: "", severity: 2, message: "Message 6.1", context: "ID: ",
         line: "000000" },
@@ -102,49 +107,80 @@ RSpec.describe Metanorma::Utils do
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
       <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 0: <b>1</b> errors; Severity 1: <b>1</b> errors</p></li>
+      <li><p><b><a href="#Category_2">Category 2</a></b>: Severity 0: <b>1</b> errors; Severity 1: <b>2</b> errors; Severity 2: <b>1</b> errors</p></li>
 
-       <li><p><b><a href="#Category_2">Category 2</a></b>: Severity 0: <b>1</b> errors; Severity 1: <b>1</b> errors; Severity 2: <b>1</b> errors</p></li>
+      <li><p><b><a href="#Category_3">Category 3</a></b>: Severity 2: <b>3</b> errors</p></li>
 
-       <li><p><b><a href="#Category_3">Category 3</a></b>: Severity 2: <b>3</b> errors</p></li>
-
-       <li><p><b><a href="#Category_4">Category 4</a></b>: Severity 2: <b>4</b> errors</p></li>
-       </ul>
-       <h2 id="Category_1">Category 1</h2>
+      <li><p><b><a href="#Category_4">Category 4</a></b>: Severity 2: <b>4</b> errors</p></li>
+      </ul>
+      <h2 id="Category_1">Category 1</h2>
       <table border="1">
-      #{TBL_HDR}
+      <thead><th width="5%">Line</th><th width="20%">ID</th>
+      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
       <tbody>
-      <tr class="severity0"><td></td><th><code>--</code></th><td>Message 1</td><td><pre></pre></td><td>0</td></tr>
-      <tr class="severity1"><td></td><th><code>node</code></th><td>Message 2</td><td><pre></pre></td><td>1</td></tr>
+      <tr class="severity0">
+      <td></td><th><code>--</code></th>
+      <td>Message 1</td><td><pre></pre></td><td>0</td></tr>
+      <tr class="severity1">
+      <td></td><th><code>node</code></th>
+      <td>Message 2</td><td><pre></pre></td><td>1</td></tr>
       </tbody></table>
       <h2 id="Category_2">Category 2</h2>
       <table border="1">
-      #{TBL_HDR}
+      <thead><th width="5%">Line</th><th width="20%">ID</th>
+      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
       <tbody>
-      <tr class="severity0"><td>000002</td><th><code>--</code></th><td>Message 4</td><td><pre>&lt;a&gt;
+      <tr class="severity0">
+      <td>000002</td><th><code>--</code></th>
+      <td>Message 4</td><td><pre>&lt;a&gt;
       &lt;b id=&quot;xyz&quot;&gt;
       c
-      &lt;/b&gt; &lt;/a&gt;</pre></td><td>0</td></tr>
-      <tr class="severity1"><td>000002</td><th><code>--</code></th><td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
-      <tr class="severity2"><td>000003</td><th><code><a href='#{File.join('.', 'log.html')}#def'>def</a></code></th><td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
+      &lt;/b&gt;
+      &lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>0</td></tr>
+      <tr class="severity1">
+      <td>000002</td><th><code>--</code></th>
+      <td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
+      <tr class="severity2">
+      <td>000003</td><th><code><a href='#{File.join('.', 'log.html')}#ghi'>ghi</a></code></th>
+      <td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
       c
       &lt;/b&gt;</pre></td><td>2</td></tr>
+      <tr class="severity1">
+      <td>000006</td><th><code><a href='#{File.join('.', 'log.html')}#L__xf6_we'>Löwe</a></code></th>
+      <td>Message 6</td><td><pre>&lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>1</td></tr>
       </tbody></table>
       <h2 id="Category_3">Category 3</h2>
       <table border="1">
-      #{TBL_HDR}
+      <thead><th width="5%">Line</th><th width="20%">ID</th>
+      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
       <tbody>
-      <tr class="severity2"><td></td><th><code>--</code></th><td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
-      <tr class="severity2"><td></td><th><code>--</code></th><td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
-      <tr class="severity2"><td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th><td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code>--</code></th>
+      <td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code>--</code></th>
+      <td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th>
+      <td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
       </tbody></table>
       <h2 id="Category_4">Category 4</h2>
       <table border="1">
-      #{TBL_HDR}
+      <thead><th width="5%">Line</th><th width="20%">ID</th>
+      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
       <tbody>
-      <tr class="severity2"><td></td><th><code>??</code></th><td>Message 7.2</td><td><pre>Line: </pre></td><td>2</td></tr>
-      <tr class="severity2"><td></td><th><code>??</code></th><td>Message 7.4</td><td><pre>Line: </pre></td><td>2</td></tr>
-      <tr class="severity2"><td>000013</td><th><code>XML Line 000013</code></th><td>Message 7.3</td><td><pre>Line: 13</pre></td><td>2</td></tr>
-      <tr class="severity2"><td>1212</td><th><code>Asciidoctor Line 000012</code></th><td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code>??</code></th>
+      <td>Message 7.2</td><td><pre>Line: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code>??</code></th>
+      <td>Message 7.4</td><td><pre>Line: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td>000013</td><th><code>XML Line 000013</code></th>
+      <td>Message 7.3</td><td><pre>Line: 13</pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td>1212</td><th><code>Asciidoctor Line 000012</code></th>
+      <td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
