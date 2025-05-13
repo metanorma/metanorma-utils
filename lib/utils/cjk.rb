@@ -46,7 +46,7 @@ module Metanorma
       CJK_COMPAT_IDEOGRAPHS = "[\\u3300-\\u33FF]".freeze
       
       # CJK Compatibility Ideographs (U+F900–U+FAFF)
-      HAN_COMPAT_IDEOGRAPHS = "[\\uF900-\\uFAFF]]".freeze
+      HAN_COMPAT_IDEOGRAPHS = "[\\uF900-\\uFAFF]".freeze
       
       # Script extensions by primary script
       HAN_EXTENSIONS = [
