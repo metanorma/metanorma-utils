@@ -5,6 +5,7 @@ require "htmlentities"
 require "nokogiri"
 require "csv"
 require_relative "../sterile/sterile"
+require_relative "cjk"
 
 module Metanorma
   module Utils
@@ -34,9 +35,6 @@ module Metanorma
         docfile = node.attr("docfile")
         docfile.nil? ? "./" : "#{Pathname.new(docfile).parent}/"
       end
-
-      CJK = "\\p{Han}|\\p{Bopomofo}|\\p{Hangul}|\\p{Hiragana}|\\p{Katakana}"
-        .freeze
 
       # TODO needs internationalisation of quote
       def smartformat(text)
