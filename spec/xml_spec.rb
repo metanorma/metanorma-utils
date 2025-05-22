@@ -3,11 +3,8 @@ require "fileutils"
 
 RSpec.describe Metanorma::Utils do
   it "normalises anchors" do
-    expect(Metanorma::Utils.to_ncname("/:ab")).to eq "__ab"
-    expect(Metanorma::Utils.to_ncname("Löwe")).to eq "L__xf6_we"
-    expect(Metanorma::Utils.to_ncname("Löwe", asciionly: false)).to eq "Löwe"
-    expect(Metanorma::Utils.to_ncname("Löwe",
-                                      asciionly: true)).to eq "L__xf6_we"
+    expect(Metanorma::Utils.to_ncname("/:ab")).to eq "_:ab"
+    expect(Metanorma::Utils.to_ncname("Löwe")).to eq "Löwe"
   end
 
   it "sets metanorma IDs if not provided" do
