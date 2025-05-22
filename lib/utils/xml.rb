@@ -57,7 +57,7 @@ module Metanorma
       #   # => "1___2___3"
       #
       # It follows the requirements of the specification: https://www.w3.org/TR/REC-xml/#NT-Name
-      def to_ncname(name)
+      def to_ncname(name, asciionly: true)
         name = name.to_s
         return "" if name.nil? || name.empty?
         return name if name.match?(SAFE_XML_TAG_NAME_REGEXP)
