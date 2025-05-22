@@ -146,7 +146,7 @@ RSpec.describe Metanorma::Utils do
       c
       &lt;/b&gt;</pre></td><td>2</td></tr>
       <tr class="severity1">
-      <td>000006</td><th><code><a href='#{File.join('.', 'log.html')}#L__xf6_we'>Löwe</a></code></th>
+      <td>000006</td><th><code><a href='#{File.join('.', 'log.html')}#Löwe'>Löwe</a></code></th>
       <td>Message 6</td><td><pre>&lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>1</td></tr>
       </tbody></table>
       <h2 id="Category_3">Category 3</h2>

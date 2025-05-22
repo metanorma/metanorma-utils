@@ -40,6 +40,41 @@ module Metanorma
         (ret1 || "") + ret2.gsub(%r([#{NAMECHAR}#])o, "_")
       end
 
+      # Following XML requirements: https://www.w3.org/TR/REC-xml/#NT-Name
+      TAG_NAME_START_CODEPOINTS = "@:A-Z_a-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}" \
+                                  "\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}" \
+                                  "\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}"
+      INVALID_TAG_NAME_START_REGEXP = /[^#{TAG_NAME_START_CODEPOINTS}]/
+      TAG_NAME_FOLLOWING_CODEPOINTS = "#{TAG_NAME_START_CODEPOINTS}\\-.0-9\u{B7}\u{0300}-\u{036F}\u{203F}-\u{2040}"
+      INVALID_TAG_NAME_FOLLOWING_REGEXP = /[^#{TAG_NAME_FOLLOWING_CODEPOINTS}]/
+      SAFE_XML_TAG_NAME_REGEXP = /\A[#{TAG_NAME_START_CODEPOINTS}][#{TAG_NAME_FOLLOWING_CODEPOINTS}]*\z/
+      TAG_NAME_REPLACEMENT_CHAR = "_"
+
+      # from: https://github.com/rails/rails/blob/3235827585d87661942c91bc81f64f56d710f0b2/activesupport/lib/active_support/core_ext/erb/util.rb
+      # A utility method for escaping XML names of tags and names of attributes.
+      #
+      #   xml_name_escape('1 < 2 & 3')
+      #   # => "1___2___3"
+      #
+      # It follows the requirements of the specification: https://www.w3.org/TR/REC-xml/#NT-Name
+      def to_ncname(name)
+        name = name.to_s
+        return "" if name.nil? || name.empty?
+        return name if name.match?(SAFE_XML_TAG_NAME_REGEXP)
+
+        starting_char = name[0]
+        starting_char.gsub!(INVALID_TAG_NAME_START_REGEXP,
+                            TAG_NAME_REPLACEMENT_CHAR)
+
+        return starting_char if name.size == 1
+
+        following_chars = name[1..-1]
+        following_chars.gsub!(INVALID_TAG_NAME_FOLLOWING_REGEXP,
+                              TAG_NAME_REPLACEMENT_CHAR)
+
+        starting_char << following_chars
+      end
+
       def anchor_or_uuid(node = nil)
         uuid = UUIDTools::UUID.random_create
         node.nil? || node.id.nil? || node.id.empty? ? "_#{uuid}" : node.id
