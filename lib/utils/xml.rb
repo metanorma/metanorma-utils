@@ -220,9 +220,9 @@ module Metanorma
         ret1 = [%w(fn target), %w(semx source), %w(fmt-title source),
                 %w(fmt-xref to), %w(fmt-xref target), %w(fmt-eref bibitemid),
                 %w(fmt-xref-label container), %w(fmt-fn-body target),
-                %w(fmt-review-start source), %w(fmt-review-start end),
-                %w(fmt-review-start target), %w(fmt-review-end source),
-                %w(fmt-review-end start), %w(fmt-review-end target)]
+                %w(fmt-annotation-start source), %w(fmt-annotation-start end),
+                %w(fmt-annotation-start target), %w(fmt-annotation-end source),
+                %w(fmt-annotation-end start), %w(fmt-annotation-end target)]
         presxml ? ret + ret1 : ret
       end
 
