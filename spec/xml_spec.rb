@@ -112,4 +112,42 @@ RSpec.describe Metanorma::Utils do
       .guid_anchor?("_78e83945-77cf-4330-b804-19ba4f387f512"))
       .to be_equivalent_to false
   end
+
+  it "generates content hash" do
+    input = <<~INPUT
+      <metanorma>
+      <a>
+        <b>C</b>
+      </a>
+      <a>C</a>
+      </metanorma>
+    INPUT
+    xml = Nokogiri::XML(input)
+    expect(Metanorma::Utils.contenthash(xml.at("//a[1]")))
+      .to be_equivalent_to "_acf23073-0e6b-9e99-5285-032c2dd00d0c"
+    expect(Metanorma::Utils.contenthash(xml.at("//a[2]")))
+      .to be_equivalent_to "_49246c6e-cf2b-9326-e13f-e6d0cf905178"
+  end
+
+  it "uses add_first_child" do
+    input = <<~INPUT
+      <metanorma>
+      <a/>
+      <b>C</b>
+      <c><d/></c>
+      </metanorma>
+    INPUT
+    xml = Nokogiri::XML(input)
+    xml.at("//a").add_first_child("<x>A</x>")
+    xml.at("//b").add_first_child("<x>B</x>")
+    xml.at("//c").add_first_child("<x>C</x>")
+    expect(xml.root.to_xml)
+      .to be_equivalent_to <<~OUTPUT
+       <metanorma>
+       <a><x>A</x></a>
+       <b><x>B</x>C</b>
+       <c><x>C</x><d/></c>
+       </metanorma>
+    OUTPUT
+  end
 end
