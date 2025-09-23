@@ -106,5 +106,9 @@ module Metanorma
         BOPOMOFO_EXTENSIONS
       ].join("|").freeze
     end
+
+    # Export CJK constant for external access while maintaining backward compatibility
+    # This allows external code to access the pattern as Metanorma::Utils::CJK
+    CJK = (class << self; CJK; end)
   end
 end
