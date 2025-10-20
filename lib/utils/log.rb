@@ -5,11 +5,17 @@ module Metanorma
     class Log
       attr_writer :xml, :suppress_log
 
-      def initialize
+      # messages: hash of message IDs to {error, severity, category}
+      # severity: 0: abort; 1: serious; 2: not serious; 3: info only
+      def initialize(messages)
         @log = {}
         @c = HTMLEntities.new
         @mapid = {}
         @suppress_log = { severity: 4, category: [] }
+        @messages = messages.each_value do |v|
+          v[:error] = v[:error]
+            .encode("UTF-8", invalid: :replace, undef: :replace)
+        end
       end
 
       def to_ncname(tag)
@@ -24,21 +30,22 @@ module Metanorma
         @htmlfilename = "#{b}.html"
       end
 
-      # severity: 0: abort; 1: serious; 2: not serious; 3: info only
-      def add(category, loc, msg, severity: 2, display: true)
-        @novalid || suppress_log?(category, severity, msg) and return
-        @log[category] ||= []
-        item = create_entry(loc, msg, severity)
-        @log[category] << item
+      def add(id, loc, display: true)
+        @novalid || suppress_log?(id) and return
+        @log[@messages[id][:category]] ||= []
+        item = create_entry(loc, @messages[id][:error],
+                            @messages[id][:severity])
+        @log[@messages[id][:category]] << item
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        suppress_display?(category, loc, msg, display) or
-          warn "#{category}: #{loc}#{msg}"
+        suppress_display?(@messages[id][:category], loc,
+                          @messages[id][:error], display) or
+          warn "#{@messages[id][:category]}: #{loc}#{@messages[id][:error]}"
       end
 
       def abort_messages
         @log.values.each_with_object([]) do |v, m|
           v.each do |e|
-            e[:severity].zero? and m << e[:message]
+            e[:severity].zero? and m << e[:error]
           end
         end
       end
@@ -51,9 +58,10 @@ module Metanorma
         end
       end
 
-      def suppress_log?(category, severity, msg)
-        category == "Relaton" && /^Fetching /.match?(msg) ||
-          @suppress_log[:severity] <= severity ||
+      def suppress_log?(id)
+        category =  @messages[id][:category]
+        category && /^Fetching /.match?(@messages[id][:error]) ||
+          @suppress_log[:severity] <= @messages[id][:severity] ||
           @suppress_log[:category].include?(category)
       end
 
@@ -63,13 +71,12 @@ module Metanorma
       end
 
       def create_entry(loc, msg, severity)
-        msg = msg.encode("UTF-8", invalid: :replace, undef: :replace)
         item = { location: current_location(loc), severity: severity,
-                 message: msg, context: context(loc), line: line(loc, msg) }
-        if item[:message].include?(" :: ")
-          a = item[:message].split(" :: ", 2)
+                 error: msg, context: context(loc), line: line(loc, msg) }
+        if item[:error].include?(" :: ")
+          a = item[:error].split(" :: ", 2)
           item[:context] = a[1]
-          item[:message] = a[0]
+          item[:error] = a[0]
         end
         item
       end
@@ -184,7 +191,7 @@ module Metanorma
           <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
           <tbody>
         HTML
-        @log[key].sort_by { |a| [a[:line], a[:location], a[:message]] }
+        @log[key].sort_by { |a| [a[:line], a[:location], a[:error]] }
           .each do |n|
           write_entry(file, render_preproc_entry(n))
         end
@@ -195,7 +202,7 @@ module Metanorma
         ret = entry.dup
         ret[:line] = nil if ret[:line] == "000000"
         ret[:location] = loc_link(entry)
-        ret[:message] = break_up_long_str(entry[:message], 10, 2)
+        ret[:error] = break_up_long_str(entry[:error], 10, 2)
           .gsub(/`([^`]+)`/, "<code>\\1</code>")
         ret[:context] = context_render(entry)
         ret.compact
@@ -237,7 +244,7 @@ module Metanorma
         file.print <<~HTML
           <tr class="severity#{entry[:severity]}">
           <td>#{entry[:line]}</td><th><code>#{entry[:location]}</code></th>
-          <td>#{entry[:message]}</td><td><pre>#{entry[:context]}</pre></td><td>#{entry[:severity]}</td></tr>
+          <td>#{entry[:error]}</td><td><pre>#{entry[:context]}</pre></td><td>#{entry[:severity]}</td></tr>
         HTML
       end
     end
