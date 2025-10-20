@@ -8,7 +8,7 @@ module Metanorma
 
       # messages: hash of message IDs to {error, severity, category}
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
-      def initialize(messages = [])
+      def initialize(messages = {})
         @log = {}
         @c = HTMLEntities.new
         @mapid = {}
