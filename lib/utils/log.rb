@@ -1,4 +1,5 @@
 require "htmlentities"
+require_relative "log_html"
 
 module Metanorma
   module Utils
@@ -12,14 +13,10 @@ module Metanorma
         @c = HTMLEntities.new
         @mapid = {}
         @suppress_log = { severity: 4, category: [] }
-        @messages = messages.each_value do |v|
+        @msg = messages.each_value do |v|
           v[:error] = v[:error]
             .encode("UTF-8", invalid: :replace, undef: :replace)
         end
-      end
-
-      def to_ncname(tag)
-        ::Metanorma::Utils.to_ncname(tag)
       end
 
       def save_to(filename, dir = nil)
@@ -30,16 +27,16 @@ module Metanorma
         @htmlfilename = "#{b}.html"
       end
 
-      def add(id, loc, display: true)
+      def add(id, loc, display: true, params: [])
         @novalid || suppress_log?(id) and return
-        @log[@messages[id][:category]] ||= []
-        item = create_entry(loc, @messages[id][:error],
-                            @messages[id][:severity])
-        @log[@messages[id][:category]] << item
+        @log[@msg[id][:category]] ||= []
+        msg = create_entry(loc, @msg[id][:error],
+                           @msg[id][:severity], params)
+        @log[@msg[id][:category]] << msg
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        suppress_display?(@messages[id][:category], loc,
-                          @messages[id][:error], display) or
-          warn "#{@messages[id][:category]}: #{loc}#{@messages[id][:error]}"
+        suppress_display?(@msg[id][:category], loc,
+                          msg, display) or
+          warn "#{@msg[id][:category]}: #{loc}#{msg[:error]}"
       end
 
       def abort_messages
@@ -59,9 +56,9 @@ module Metanorma
       end
 
       def suppress_log?(id)
-        category =  @messages[id][:category]
-        category && /^Fetching /.match?(@messages[id][:error]) ||
-          @suppress_log[:severity] <= @messages[id][:severity] ||
+        category =  @msg[id][:category]
+        category && /^Fetching /.match?(@msg[id][:error]) ||
+          @suppress_log[:severity] <= @msg[id][:severity] ||
           @suppress_log[:category].include?(category)
       end
 
@@ -70,15 +67,28 @@ module Metanorma
           !display
       end
 
-      def create_entry(loc, msg, severity)
+      def create_entry(loc, msg, severity, params)
+        interpolated = interpolate_msg(msg, params)
         item = { location: current_location(loc), severity: severity,
-                 error: msg, context: context(loc), line: line(loc, msg) }
+                 error: interpolated, context: context(loc),
+                 line: line(loc, msg) }
         if item[:error].include?(" :: ")
           a = item[:error].split(" :: ", 2)
           item[:context] = a[1]
           item[:error] = a[0]
         end
         item
+      end
+
+      def interpolate_msg(msg, params)
+        # Count %s placeholders in the message
+        placeholder_count = msg.scan(/%s/).length
+        interpolation_params = if params.empty?
+                                 ::Array.new(placeholder_count, "")
+                               else
+                                 params
+                               end
+        placeholder_count.zero? ? msg : (msg % interpolation_params)
       end
 
       def current_location(node)
@@ -139,113 +149,6 @@ module Metanorma
           sub and s.replace(sub)
         end
         ret.to_xml
-      end
-
-      def log_hdr(file)
-        <<~HTML
-          <html><head><title>#{file} errors</title>
-          <meta charset="UTF-8"/>
-          <style> pre { white-space: pre-wrap; }
-          thead th { font-weight: bold; background-color: aqua; }
-          .severity0 { font-weight: bold; background-color: lightpink }
-          .severity1 { font-weight: bold; }
-          .severity2 { }
-          .severity3 { font-style: italic; color: grey; }
-          </style>
-          </head><body><h1>#{file} errors</h1>
-          <ul>#{log_index}</ul>
-        HTML
-      end
-
-      def log_index
-        @log.each_with_object([]) do |(k, v), m|
-          m << <<~HTML
-            <li><p><b><a href="##{to_ncname(k)}">#{k}</a></b>: #{index_severities(v)}</p></li>
-          HTML
-        end.join("\n")
-      end
-
-      def index_severities(entries)
-        s = entries.each_with_object({}) do |e, m|
-          m[e[:severity]] ||= 0
-          m[e[:severity]] += 1
-        end.compact
-        s.keys.sort.map do |k|
-          "Severity #{k}: <b>#{s[k]}</b> errors"
-        end.join("; ")
-      end
-
-      def write(file = nil)
-        (!file && @filename) or save_to(file || "metanorma", nil)
-        File.open(@filename, "w:UTF-8") do |f|
-          f.puts log_hdr(@filename)
-          @log.each_key { |key| write_key(f, key) }
-          f.puts "</body></html>\n"
-        end
-      end
-
-      def write_key(file, key)
-        file.puts <<~HTML
-          <h2 id="#{to_ncname(key)}">#{key}</h2>\n<table border="1">
-          <thead><th width="5%">Line</th><th width="20%">ID</th>
-          <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-          <tbody>
-        HTML
-        @log[key].sort_by { |a| [a[:line], a[:location], a[:error]] }
-          .each do |n|
-          write_entry(file, render_preproc_entry(n))
-        end
-        file.puts "</tbody></table>\n"
-      end
-
-      def render_preproc_entry(entry)
-        ret = entry.dup
-        ret[:line] = nil if ret[:line] == "000000"
-        ret[:location] = loc_link(entry)
-        ret[:error] = break_up_long_str(entry[:error], 10, 2)
-          .gsub(/`([^`]+)`/, "<code>\\1</code>")
-        ret[:context] = context_render(entry)
-        ret.compact
-      end
-
-      def context_render(entry)
-        entry[:context] or return nil
-        entry[:context].split("\n").first(5)
-          .join("\n").gsub("><", "> <")
-      end
-
-      def mapid(old, new)
-        @mapid[old] = new
-      end
-
-      def loc_link(entry)
-        loc = entry[:location]
-        loc.nil? || loc.empty? and loc = "--"
-        loc, url = loc_to_url(loc)
-        loc &&= break_up_long_str(loc, 10, 2)
-        url and loc = "<a href='#{url}'>#{loc}</a>"
-        loc
-      end
-
-      def loc_to_url(loc)
-        /^ID /.match?(loc) or return [loc, nil]
-        loc.sub!(/^ID /, "")
-        loc = @mapid[loc] while @mapid[loc]
-        url = "#{@htmlfilename}##{to_ncname loc}"
-        [loc, url]
-      end
-
-      def break_up_long_str(str, threshold, punct)
-        Metanorma::Utils.break_up_long_str(str, threshold, punct)
-      end
-
-      def write_entry(file, entry)
-        entry[:context] &&= @c.encode(break_up_long_str(entry[:context], 40, 2))
-        file.print <<~HTML
-          <tr class="severity#{entry[:severity]}">
-          <td>#{entry[:line]}</td><th><code>#{entry[:location]}</code></th>
-          <td>#{entry[:error]}</td><td><pre>#{entry[:context]}</pre></td><td>#{entry[:severity]}</td></tr>
-        HTML
       end
     end
   end
