@@ -203,7 +203,40 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
-  xit "sets log file location" do
+  it "log non-existent error" do
+    begin
+      log = Metanorma::Utils::Log.new(
+        "A" => { error: "Message 1", severity: 0, category: "Category 1" },
+      )
+      expect do
+        log.add("B", nil)
+      end.to raise_error(RuntimeError)
+    rescue SystemExit, RuntimeError
+    end
+
+    begin
+      log = Metanorma::Utils::Log.new(
+        "A" => { error: "Message 1", severity: 2, category: "Category 1" },
+      )
+      log.add_msg({
+                    "B" => { error: "Message 2", severity: 1,
+                             category: "Category 2" },
+                  })
+      expect do
+        log.add("A", nil)
+        log.add("B", nil)
+      end.not_to raise_error(SystemExit)
+    rescue SystemExit, RuntimeError
+    end
+    expect(log.messages).to be_equivalent_to [
+      { location: "", severity: 2, error: "Message 1", context: "",
+        line: "000000" },
+      { location: "", severity: 1,
+        error: "Message 2", context: "", line: "000000" },
+    ]
+  end
+
+  it "sets log file location" do
     FileUtils.rm_f("metanorma.err.html")
     log = Metanorma::Utils::Log.new(
       "A" => { error: "Message 1", severity: 0, category: "Category 1" },

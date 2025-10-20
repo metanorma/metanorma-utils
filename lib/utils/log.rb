@@ -8,7 +8,7 @@ module Metanorma
 
       # messages: hash of message IDs to {error, severity, category}
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
-      def initialize(messages)
+      def initialize(messages = [])
         @log = {}
         @c = HTMLEntities.new
         @mapid = {}
@@ -19,6 +19,10 @@ module Metanorma
         end
       end
 
+      def add_msg(messages)
+        @msg.merge!(messages)
+      end
+
       def save_to(filename, dir = nil)
         dir ||= File.dirname(filename)
         new_fn = filename.sub(/\.err\.html$/, ".html")
@@ -27,15 +31,20 @@ module Metanorma
         @htmlfilename = "#{b}.html"
       end
 
-      def add(id, loc, display: true, params: [])
-        @novalid || suppress_log?(id) and return
+      def add_prep(id)
+        @msg[id] or raise "Logging: Error #{id} is not defined!"
+        @novalid || suppress_log?(id) and return false
         @log[@msg[id][:category]] ||= []
+        true
+      end
+
+      def add(id, loc, display: true, params: [])
+        add_prep(id) or return
         msg = create_entry(loc, @msg[id][:error],
                            @msg[id][:severity], params)
         @log[@msg[id][:category]] << msg
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        suppress_display?(@msg[id][:category], loc,
-                          msg, display) or
+        suppress_display?(@msg[id][:category], loc, msg, display) or
           warn "#{@msg[id][:category]}: #{loc}#{msg[:error]}"
       end
 
