@@ -43,21 +43,21 @@ RSpec.describe Metanorma::Utils do
     li4 = WithLine.new
 
     messages = {
-      "A" => { error: "Message 1", severity: 0, category: "Category 1" },
-      "B" => { error: "Message 2", severity: 1, category: "Category 1" },
-      "C" => { error: "Message 3", severity: 2, category: "Category 2" },
-      "D" => { error: "Message 4", severity: 0, category: "Category 2" },
-      "E" => { error: "Message 5 :: Context", severity: 1,
+      "A": { error: "Message 1", severity: 0, category: "Category 1" },
+      "B": { error: "Message 2", severity: 1, category: "Category 1" },
+      "C": { error: "Message 3", severity: 2, category: "Category 2" },
+      "D": { error: "Message 4", severity: 0, category: "Category 2" },
+      "E": { error: "Message 5 :: Context", severity: 1,
                category: "Category 2" },
-      "F" => { error: "Message 6", severity: 1, category: "Category 2" },
-      "G" => { error: "Message 6.1", severity: 2, category: "Category 3" },
-      "H" => { error: "Message 6.2", severity: 2, category: "Category 3" },
-      "I" => { error: "Message 6.3", severity: 2, category: "Category 3" },
-      "J" => { error: "XML Line 1212:40, Message 7.1", severity: 2,
+      "F": { error: "Message 6", severity: 1, category: "Category 2" },
+      "G": { error: "Message 6.1", severity: 2, category: "Category 3" },
+      "H": { error: "Message 6.2", severity: 2, category: "Category 3" },
+      "I": { error: "Message 6.3", severity: 2, category: "Category 3" },
+      "J": { error: "XML Line 1212:40, Message 7.1", severity: 2,
                category: "Category 4" },
-      "K" => { error: "Message 7.2", severity: 2, category: "Category 4" },
-      "L" => { error: "Message 7.3", severity: 2, category: "Category 4" },
-      "M" => { error: "Message 7.4", severity: 2, category: "Category 4" },
+      "K": { error: "Message 7.2", severity: 2, category: "Category 4" },
+      "L": { error: "Message 7.3", severity: 2, category: "Category 4" },
+      "M": { error: "Message 7.4", severity: 2, category: "Category 4" },
     }
 
     xml = Nokogiri::XML(<<~INPUT)
@@ -206,7 +206,7 @@ RSpec.describe Metanorma::Utils do
   it "log non-existent error" do
     begin
       log = Metanorma::Utils::Log.new(
-        "A" => { error: "Message 1", severity: 0, category: "Category 1" },
+        "A": { error: "Message 1", severity: 0, category: "Category 1" },
       )
       expect do
         log.add("B", nil)
@@ -216,10 +216,10 @@ RSpec.describe Metanorma::Utils do
 
     begin
       log = Metanorma::Utils::Log.new(
-        "A" => { error: "Message 1", severity: 2, category: "Category 1" },
+        "A": { error: "Message 1", severity: 2, category: "Category 1" },
       )
       log.add_msg({
-                    "B" => { error: "Message 2", severity: 1,
+                    "B": { error: "Message 2", severity: 1,
                              category: "Category 2" },
                   })
       expect do
@@ -239,7 +239,7 @@ RSpec.describe Metanorma::Utils do
   it "sets log file location" do
     FileUtils.rm_f("metanorma.err.html")
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "Message 1", severity: 0, category: "Category 1" },
+      "A": { error: "Message 1", severity: 0, category: "Category 1" },
     )
     log.add("A", nil)
     log.write
@@ -281,7 +281,7 @@ RSpec.describe Metanorma::Utils do
   it "interpolates text in error messages" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "A %s B %s", severity: 2, category: "Category 1" },
+      "A": { error: "A %s B %s", severity: 2, category: "Category 1" },
     )
     FileUtils.rm_f("log.err.html")
     expect { log.add("A", nil) }
@@ -310,7 +310,7 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
 
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "A %s B %s", severity: 2, category: "Category 1" },
+      "A": { error: "A %s B %s", severity: 2, category: "Category 1" },
     )
     FileUtils.rm_f("log.err.html")
     expect { log.add("A", nil, display: true, params: ["foo", "bar"]) }
@@ -339,7 +339,7 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
 
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "A %s B %s", severity: 2, category: "Category 1" },
+      "A": { error: "A %s B %s", severity: 2, category: "Category 1" },
     )
     expect { log.add("A", nil, display: true, params: [nil, "bar"]) }
       .to output("Category 1: A  B bar\n").to_stderr
@@ -348,9 +348,9 @@ RSpec.describe Metanorma::Utils do
   it "suppresses errors from screen display" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "A", severity: 2, category: "Category 1" },
-      "B" => { error: "A", severity: 2, category: "Metanorma XML Syntax" },
-      "C" => { error: "A", severity: 2, category: "Relaton" },
+      "A": { error: "A", severity: 2, category: "Category 1" },
+      "B": { error: "A", severity: 2, category: "Metanorma XML Syntax" },
+      "C": { error: "A", severity: 2, category: "Relaton" },
     )
     expect { log.add("A", nil) }
       .to output("Category 1: A\n").to_stderr
@@ -406,16 +406,16 @@ RSpec.describe Metanorma::Utils do
   it "suppresses errors from log" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
-      "A1" => { error: "A", severity: 1, category: "Category 1" },
-      "A2" => { error: "B", severity: 2, category: "
+      "A1": { error: "A", severity: 1, category: "Category 1" },
+      "A2": { error: "B", severity: 2, category: "
 Category 1" },
-      "A3" => { error: "C", severity: 3, category: "Category 1" },
-      "A4" => { error: "A", severity: 1, category: "Category 2" },
-      "A5" => { error: "B", severity: 2, category: "Category 2" },
-      "A6" => { error: "C", severity: 3, category: "Category 2" },
-      "A7" => { error: "A", severity: 1, category: "Category 3" },
-      "A8" => { error: "B", severity: 2, category: "Category 3" },
-      "A9" => { error: "C", severity: 3, category: "Category 3" },
+      "A3": { error: "C", severity: 3, category: "Category 1" },
+      "A4": { error: "A", severity: 1, category: "Category 2" },
+      "A5": { error: "B", severity: 2, category: "Category 2" },
+      "A6": { error: "C", severity: 3, category: "Category 2" },
+      "A7": { error: "A", severity: 1, category: "Category 3" },
+      "A8": { error: "B", severity: 2, category: "Category 3" },
+      "A9": { error: "C", severity: 3, category: "Category 3" },
     )
     log.suppress_log = { severity: 2,
                          category: ["Category 1", "Category 2"] }
@@ -462,7 +462,7 @@ Category 1" },
   it "deals with illegal characters in log" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "é\xc2", severity: 2, category: "Category 1" },
+      "A": { error: "é\xc2", severity: 2, category: "Category 1" },
     )
     log.add("A", nil)
     log.write("log.txt")
@@ -487,7 +487,7 @@ Category 1" },
   it "deals with long strings in log" do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+      "A": { error: "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
                severity: 2, category: "Category 1" },
     )
     log.add("A",
@@ -524,7 +524,7 @@ Category 1" },
     INPUT
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
-      "A" => { error: "Message 3", severity: 2, category: "Category 2" },
+      "A": { error: "Message 3", severity: 2, category: "Category 2" },
     )
     log.add("A", xml.at("//xml/a"))
     log.write("log.txt")

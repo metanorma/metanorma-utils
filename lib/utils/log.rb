@@ -32,20 +32,21 @@ module Metanorma
       end
 
       def add_prep(id)
+        id = id.to_sym
         @msg[id] or raise "Logging: Error #{id} is not defined!"
-        @novalid || suppress_log?(id) and return false
+        @novalid || suppress_log?(id) and return nil
         @log[@msg[id][:category]] ||= []
-        true
+        @msg[id]
       end
 
       def add(id, loc, display: true, params: [])
-        add_prep(id) or return
-        msg = create_entry(loc, @msg[id][:error],
-                           @msg[id][:severity], params)
-        @log[@msg[id][:category]] << msg
+        m = add_prep(id) or return
+        msg = create_entry(loc, m[:error],
+                           m[:severity], params)
+        @log[m[:category]] << msg
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
-        suppress_display?(@msg[id][:category], loc, msg, display) or
-          warn "#{@msg[id][:category]}: #{loc}#{msg[:error]}"
+        suppress_display?(m[:category], loc, msg, display) or
+          warn "#{m[:category]}: #{loc}#{msg[:error]}"
       end
 
       def abort_messages
