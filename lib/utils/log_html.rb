@@ -111,6 +111,58 @@ module Metanorma
           <td>#{entry[:error]}</td><td><pre>#{entry[:context]}</pre></td><td>#{entry[:severity]}</td></tr>
         HTML
       end
+
+      def display_messages
+        grouped = group_messages_by_category
+        grouped.map { |cat, keys| format_category_section(cat, keys) }
+          .join("\n")
+      end
+
+      def group_messages_by_category
+        sort_messages_by_category_and_key
+          .group_by { |k| @msg[k][:category] }
+          .sort_by { |cat, _| cat }
+      end
+
+      def format_category_section(category, keys)
+        lines = keys.map { |k| format_error_line(k) }
+        "#{category}:\n#{lines.join("\n")}"
+      end
+
+      def format_error_line(key)
+        padded_key = key.to_s.ljust(12)
+        "\t#{padded_key}: #{@msg[key][:error]}"
+      end
+
+      def sort_messages_by_category_and_key
+        @msg.keys.sort do |a, b|
+          cat_cmp = @msg[a][:category] <=> @msg[b][:category]
+          cat_cmp.zero? ? compare_message_keys(a, b) : cat_cmp
+        end
+      end
+
+      def compare_message_keys(key_a, key_b)
+        a_parts = parse_message_key(key_a)
+        b_parts = parse_message_key(key_b)
+        compare_key_parts(a_parts, b_parts)
+      end
+
+      def parse_message_key(key)
+        match = key.to_s.match(/^(.+?)_(\d+)$/)
+        match ? [match[1], match[2].to_i] : [key.to_s, nil]
+      end
+
+      def compare_key_parts(a_parts, b_parts)
+        a_str, a_num = a_parts
+        b_str, b_num = b_parts
+
+        if a_num.nil? || b_num.nil?
+          a_str <=> b_str
+        else
+          str_cmp = a_str <=> b_str
+          str_cmp.zero? ? a_num <=> b_num : str_cmp
+        end
+      end
     end
   end
 end

@@ -3,7 +3,7 @@ require "fileutils"
 
 RSpec.describe Metanorma::Utils do
   # not testing Asciidoctor log extraction here
-  xit "generates log" do
+  it "generates log" do
     class WithId
       attr_accessor :id, :parent
 
@@ -43,21 +43,25 @@ RSpec.describe Metanorma::Utils do
     li4 = WithLine.new
 
     messages = {
-      "A": { error: "Message 1", severity: 0, category: "Category 1" },
-      "B": { error: "Message 2", severity: 1, category: "Category 1" },
-      "C": { error: "Message 3", severity: 2, category: "Category 2" },
-      "D": { error: "Message 4", severity: 0, category: "Category 2" },
-      "E": { error: "Message 5 :: Context", severity: 1,
-               category: "Category 2" },
-      "F": { error: "Message 6", severity: 1, category: "Category 2" },
-      "G": { error: "Message 6.1", severity: 2, category: "Category 3" },
-      "H": { error: "Message 6.2", severity: 2, category: "Category 3" },
-      "I": { error: "Message 6.3", severity: 2, category: "Category 3" },
-      "J": { error: "XML Line 1212:40, Message 7.1", severity: 2,
-               category: "Category 4" },
-      "K": { error: "Message 7.2", severity: 2, category: "Category 4" },
-      "L": { error: "Message 7.3", severity: 2, category: "Category 4" },
-      "M": { error: "Message 7.4", severity: 2, category: "Category 4" },
+      "FLAVOR_3": { error: "Message 1", severity: 0, category: "Category 1" },
+      "BMX_44": { error: "Message 2", severity: 1, category: "Category 1" },
+      "FLAVOR_5": { error: "Message 3", severity: 2, category: "Category 2" },
+      "FLAVOR_10": { error: "Message 4", severity: 0, category: "Category 2" },
+      "FLAVOR_1": { error: "Message 5 :: Context", severity: 1,
+                    category: "Category 2" },
+      "BMX_4": { error: "Message 6", severity: 1, category: "Category 2" },
+      "BMX_3": { error: "Message 6.1", severity: 2, category: "Category 3" },
+      "FLAVOR_2": { error: "Message 6.2", severity: 2, category: "Category 3" },
+      "FLAVOR_50": { error: "Message 6.3", severity: 2,
+                     category: "Category 3" },
+      "FLAVOR_49": { error: "XML Line 1212:40, Message 7.1", severity: 2,
+                     category: "Category 4" },
+      "FLAVOR_48": { error: "Message 7.2", severity: 2,
+                     category: "Category 4" },
+      "FLAVOR_47": { error: "Message 7.3", severity: 2,
+                     category: "Category 4" },
+      "FLAVOR_46": { error: "Message 7.4", severity: 2,
+                     category: "Category 4" },
     }
 
     xml = Nokogiri::XML(<<~INPUT)
@@ -71,19 +75,19 @@ RSpec.describe Metanorma::Utils do
     INPUT
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(messages)
-    log.add("A", nil)
-    log.add("B", "node")
-    log.add("C", xml.at("//xml/a/b"))
-    log.add("D", xml.at("//xml/a"))
-    log.add("E", xml.at("//xml/a"))
-    log.add("F", xml.at("//xml/a/c"))
-    log.add("G", id1)
-    log.add("H", id2)
-    log.add("I", id3)
-    log.add("J", li1)
-    log.add("K", li2)
-    log.add("L", li3)
-    log.add("M", li4)
+    log.add("FLAVOR_3", nil)
+    log.add("BMX_44", "node")
+    log.add("FLAVOR_5", xml.at("//xml/a/b"))
+    log.add("FLAVOR_10", xml.at("//xml/a"))
+    log.add("FLAVOR_1", xml.at("//xml/a"))
+    log.add("BMX_4", xml.at("//xml/a/c"))
+    log.add("BMX_3", id1)
+    log.add("FLAVOR_2", id2)
+    log.add("FLAVOR_50", id3)
+    log.add("FLAVOR_49", li1)
+    log.add("FLAVOR_48", li2)
+    log.add("FLAVOR_47", li3)
+    log.add("FLAVOR_46", li4)
     log.mapid("xyz", "abc")
     log.mapid("abc", "ghi")
     log.write("log.txt")
@@ -116,6 +120,25 @@ RSpec.describe Metanorma::Utils do
       { location: "??", severity: 2, error: "Message 7.4",
         context: "Line: ", line: "000000" },
     ]
+    expect(log.display_messages).to be_equivalent_to <<~OUTPUT
+      Category 1:
+      \tBMX_44      : Message 2
+      \tFLAVOR_3    : Message 1
+      Category 2:
+      \tBMX_4       : Message 6
+      \tFLAVOR_1    : Message 5 :: Context
+      \tFLAVOR_5    : Message 3
+      \tFLAVOR_10   : Message 4
+      Category 3:
+      \tBMX_3       : Message 6.1
+      \tFLAVOR_2    : Message 6.2
+      \tFLAVOR_50   : Message 6.3
+      Category 4:
+      \tFLAVOR_46   : Message 7.4
+      \tFLAVOR_47   : Message 7.3
+      \tFLAVOR_48   : Message 7.2
+      \tFLAVOR_49   : XML Line 1212:40, Message 7.1
+    OUTPUT
     expect(File.exist?("log.err.html")).to be true
     expect(File.exist?("log.txt")).to be false
     file = File.read("log.err.html", encoding: "utf-8")
@@ -220,7 +243,7 @@ RSpec.describe Metanorma::Utils do
       )
       log.add_msg({
                     "B": { error: "Message 2", severity: 1,
-                             category: "Category 2" },
+                           category: "Category 2" },
                   })
       expect do
         log.add("A", nil)
@@ -488,7 +511,7 @@ Category 1" },
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
       "A": { error: "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-               severity: 2, category: "Category 1" },
+             severity: 2, category: "Category 1" },
     )
     log.add("A",
             "ID AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
