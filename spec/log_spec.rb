@@ -42,6 +42,28 @@ RSpec.describe Metanorma::Utils do
     li3.line = "13"
     li4 = WithLine.new
 
+    messages = {
+      "FLAVOR_3": { error: "Message 1", severity: 0, category: "Category 1" },
+      "BMX_44": { error: "Message 2", severity: 1, category: "Category 1" },
+      "FLAVOR_5": { error: "Message 3", severity: 2, category: "Category 2" },
+      "FLAVOR_10": { error: "Message 4", severity: 0, category: "Category 2" },
+      "FLAVOR_1": { error: "Message 5 :: Context", severity: 1,
+                    category: "Category 2" },
+      "BMX_4": { error: "Message 6", severity: 1, category: "Category 2" },
+      "BMX_3": { error: "Message 6.1", severity: 2, category: "Category 3" },
+      "FLAVOR_2": { error: "Message 6.2", severity: 2, category: "Category 3" },
+      "FLAVOR_50": { error: "Message 6.3", severity: 2,
+                     category: "Category 3" },
+      "FLAVOR_49": { error: "XML Line 1212:40, Message 7.1", severity: 2,
+                     category: "Category 4" },
+      "FLAVOR_48": { error: "Message 7.2", severity: 2,
+                     category: "Category 4" },
+      "FLAVOR_47": { error: "Message 7.3", severity: 2,
+                     category: "Category 4" },
+      "FLAVOR_46": { error: "Message 7.4", severity: 2,
+                     category: "Category 4" },
+    }
+
     xml = Nokogiri::XML(<<~INPUT)
       <xml>
       <a>
@@ -52,53 +74,71 @@ RSpec.describe Metanorma::Utils do
       </a></xml>
     INPUT
     FileUtils.rm_f("log.err.html")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 1", nil, "Message 1", severity: 0)
-    log.add("Category 1", "node", "Message 2", severity: 1)
-    log.add("Category 2", xml.at("//xml/a/b"), "Message 3", severity: 2)
-    log.add("Category 2", xml.at("//xml/a"), "Message 4", severity: 0)
-    log.add("Category 2", xml.at("//xml/a"), "Message 5 :: Context",
-            severity: 1)
-    log.add("Category 2", xml.at("//xml/a/c"), "Message 6", severity: 1)
-    log.add("Category 3", id1, "Message 6.1", severity: 2)
-    log.add("Category 3", id2, "Message 6.2")
-    log.add("Category 3", id3, "Message 6.3")
-    log.add("Category 4", li1, "XML Line 1212:40, Message 7.1")
-    log.add("Category 4", li2, "Message 7.2")
-    log.add("Category 4", li3, "Message 7.3")
-    log.add("Category 4", li4, "Message 7.4")
+    log = Metanorma::Utils::Log.new(messages)
+    log.add("FLAVOR_3", nil)
+    log.add("BMX_44", "node")
+    log.add("FLAVOR_5", xml.at("//xml/a/b"))
+    log.add("FLAVOR_10", xml.at("//xml/a"))
+    log.add("FLAVOR_1", xml.at("//xml/a"))
+    log.add("BMX_4", xml.at("//xml/a/c"))
+    log.add("BMX_3", id1)
+    log.add("FLAVOR_2", id2)
+    log.add("FLAVOR_50", id3)
+    log.add("FLAVOR_49", li1)
+    log.add("FLAVOR_48", li2)
+    log.add("FLAVOR_47", li3)
+    log.add("FLAVOR_46", li4)
     log.mapid("xyz", "abc")
     log.mapid("abc", "ghi")
     log.write("log.txt")
     expect(log.abort_messages).to be_equivalent_to ["Message 1", "Message 4"]
     expect(log.messages).to be_equivalent_to [
-      { location: "", severity: 0, message: "Message 1", context: "",
+      { location: "", severity: 0, error: "Message 1", context: "",
         line: "000000" },
-      { location: "node", severity: 1, message: "Message 2", context: nil,
+      { location: "node", severity: 1, error: "Message 2", context: nil,
         line: "000000" },
-      { location: "xyz", severity: 2, message: "Message 3",
+      { location: "xyz", severity: 2, error: "Message 3",
         context: "<b id=\"xyz\">\nc\n</b>", line: "000003" },
-      { location: "", severity: 0, message: "Message 4",
+      { location: "", severity: 0, error: "Message 4",
         context: "<a>\n<b id=\"xyz\">\nc\n</b></a>", line: "000002" },
-      { location: "", severity: 1, message: "Message 5", context: "Context",
+      { location: "", severity: 1, error: "Message 5", context: "Context",
         line: "000002" },
-      { location: "def", severity: 1, message: "Message 6", context: "<c id=\"abc\" anchor=\"def\"/>",
+      { location: "def", severity: 1, error: "Message 6", context: "<c id=\"abc\" anchor=\"def\"/>",
         line: "000002" },
-      { location: "", severity: 2, message: "Message 6.1", context: "ID: ",
+      { location: "", severity: 2, error: "Message 6.1", context: "ID: ",
         line: "000000" },
-      { location: "B", severity: 2, message: "Message 6.2", context: "ID: B",
+      { location: "B", severity: 2, error: "Message 6.2", context: "ID: B",
         line: "000000" },
-      { location: "", severity: 2, message: "Message 6.3", context: "ID: ",
+      { location: "", severity: 2, error: "Message 6.3", context: "ID: ",
         line: "000000" },
       { location: "Asciidoctor Line 000012", severity: 2,
-        message: "XML Line 1212:40, Message 7.1", context: "Line: 12", line: "1212" },
-      { location: "??", severity: 2, message: "Message 7.2",
+        error: "XML Line 1212:40, Message 7.1", context: "Line: 12", line: "1212" },
+      { location: "??", severity: 2, error: "Message 7.2",
         context: "Line: ", line: "000000" },
-      { location: "XML Line 000013", severity: 2, message: "Message 7.3",
+      { location: "XML Line 000013", severity: 2, error: "Message 7.3",
         context: "Line: 13", line: "000013" },
-      { location: "??", severity: 2, message: "Message 7.4",
+      { location: "??", severity: 2, error: "Message 7.4",
         context: "Line: ", line: "000000" },
     ]
+    expect(log.display_messages).to be_equivalent_to <<~OUTPUT
+      Category 1:
+      \tBMX_44      : Message 2
+      \tFLAVOR_3    : Message 1
+      Category 2:
+      \tBMX_4       : Message 6
+      \tFLAVOR_1    : Message 5 :: Context
+      \tFLAVOR_5    : Message 3
+      \tFLAVOR_10   : Message 4
+      Category 3:
+      \tBMX_3       : Message 6.1
+      \tFLAVOR_2    : Message 6.2
+      \tFLAVOR_50   : Message 6.3
+      Category 4:
+      \tFLAVOR_46   : Message 7.4
+      \tFLAVOR_47   : Message 7.3
+      \tFLAVOR_48   : Message 7.2
+      \tFLAVOR_49   : XML Line 1212:40, Message 7.1
+    OUTPUT
     expect(File.exist?("log.err.html")).to be true
     expect(File.exist?("log.txt")).to be false
     file = File.read("log.err.html", encoding: "utf-8")
@@ -186,10 +226,45 @@ RSpec.describe Metanorma::Utils do
     OUTPUT
   end
 
+  it "log non-existent error" do
+    begin
+      log = Metanorma::Utils::Log.new(
+        "A": { error: "Message 1", severity: 0, category: "Category 1" },
+      )
+      expect do
+        log.add("B", nil)
+      end.to raise_error(RuntimeError)
+    rescue SystemExit, RuntimeError
+    end
+
+    begin
+      log = Metanorma::Utils::Log.new(
+        "A": { error: "Message 1", severity: 2, category: "Category 1" },
+      )
+      log.add_msg({
+                    "B": { error: "Message 2", severity: 1,
+                           category: "Category 2" },
+                  })
+      expect do
+        log.add("A", nil)
+        log.add("B", nil)
+      end.not_to raise_error(SystemExit)
+    rescue SystemExit, RuntimeError
+    end
+    expect(log.messages).to be_equivalent_to [
+      { location: "", severity: 2, error: "Message 1", context: "",
+        line: "000000" },
+      { location: "", severity: 1,
+        error: "Message 2", context: "", line: "000000" },
+    ]
+  end
+
   it "sets log file location" do
     FileUtils.rm_f("metanorma.err.html")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 1", nil, "Message 1", severity: 0)
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "Message 1", severity: 0, category: "Category 1" },
+    )
+    log.add("A", nil)
     log.write
     expect(File.exist?("metanorma.err.html")).to be true
     FileUtils.rm_f("metanorma.err.html")
@@ -226,16 +301,87 @@ RSpec.describe Metanorma::Utils do
     FileUtils.rm_f("spec/log1.err.html")
   end
 
+  it "interpolates text in error messages" do
+    FileUtils.rm_f("log.err.html")
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "A %s B %s", severity: 2, category: "Category 1" },
+    )
+    FileUtils.rm_f("log.err.html")
+    expect { log.add("A", nil) }
+      .to output("Category 1: A  B \n").to_stderr
+    expect(log.messages).to be_equivalent_to [
+      { location: "", severity: 2, error: "A  B ",
+        context: "", line: "000000" },
+    ]
+    log.write("log.txt")
+    file = File.read("log.err.html", encoding: "utf-8")
+    expect(file).to be_equivalent_to <<~OUTPUT
+      <html><head><title>./log.err.html errors</title>
+      #{HTML_HDR}
+      </head><body><h1>./log.err.html errors</h1>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+      </ul>
+      <h2 id="Category_1">Category 1</h2>
+      <table border="1">
+      #{TBL_HDR}
+      <tbody>
+      <tr class="severity2">
+      <td></td><th><code>--</code></th>
+      <td>A  B </td><td><pre></pre></td><td>2</td></tr>
+      </tbody></table>
+      </body></html>
+    OUTPUT
+
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "A %s B %s", severity: 2, category: "Category 1" },
+    )
+    FileUtils.rm_f("log.err.html")
+    expect { log.add("A", nil, display: true, params: ["foo", "bar"]) }
+      .to output("Category 1: A foo B bar\n").to_stderr
+    expect(log.messages).to be_equivalent_to [
+      { location: "", severity: 2, error: "A foo B bar",
+        context: "", line: "000000" },
+    ]
+    log.write("log.txt")
+    file = File.read("log.err.html", encoding: "utf-8")
+    expect(file).to be_equivalent_to <<~OUTPUT
+      <html><head><title>./log.err.html errors</title>
+      #{HTML_HDR}
+      </head><body><h1>./log.err.html errors</h1>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+      </ul>
+      <h2 id="Category_1">Category 1</h2>
+      <table border="1">
+      #{TBL_HDR}
+      <tbody>
+      <tr class="severity2">
+      <td></td><th><code>--</code></th>
+      <td>A foo B bar</td><td><pre></pre></td><td>2</td></tr>
+      </tbody></table>
+      </body></html>
+    OUTPUT
+
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "A %s B %s", severity: 2, category: "Category 1" },
+    )
+    expect { log.add("A", nil, display: true, params: [nil, "bar"]) }
+      .to output("Category 1: A  B bar\n").to_stderr
+  end
+
   it "suppresses errors from screen display" do
     FileUtils.rm_f("log.err.html")
-    log = Metanorma::Utils::Log.new
-    expect { log.add("Category 1", nil, "A") }
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "A", severity: 2, category: "Category 1" },
+      "B": { error: "A", severity: 2, category: "Metanorma XML Syntax" },
+      "C": { error: "A", severity: 2, category: "Relaton" },
+    )
+    expect { log.add("A", nil) }
       .to output("Category 1: A\n").to_stderr
-    expect { log.add("Category 1", nil, "A", display: false) }
+    expect { log.add("A", nil, display: false) }
       .not_to output("Category 1: A\n").to_stderr
-    expect { log.add("Metanorma XML Syntax", nil, "A") }
+    expect { log.add("B", nil) }
       .not_to output("Metanorma XML Syntax: A\n").to_stderr
-    expect { log.add("Relaton", nil, "A") }
+    expect { log.add("C", nil) }
       .not_to output("Relaton: A\n").to_stderr
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
@@ -282,26 +428,37 @@ RSpec.describe Metanorma::Utils do
 
   it "suppresses errors from log" do
     FileUtils.rm_f("log.err.html")
-    log = Metanorma::Utils::Log.new
+    log = Metanorma::Utils::Log.new(
+      "A1": { error: "A", severity: 1, category: "Category 1" },
+      "A2": { error: "B", severity: 2, category: "
+Category 1" },
+      "A3": { error: "C", severity: 3, category: "Category 1" },
+      "A4": { error: "A", severity: 1, category: "Category 2" },
+      "A5": { error: "B", severity: 2, category: "Category 2" },
+      "A6": { error: "C", severity: 3, category: "Category 2" },
+      "A7": { error: "A", severity: 1, category: "Category 3" },
+      "A8": { error: "B", severity: 2, category: "Category 3" },
+      "A9": { error: "C", severity: 3, category: "Category 3" },
+    )
     log.suppress_log = { severity: 2,
                          category: ["Category 1", "Category 2"] }
-    expect { log.add("Category 1", nil, "A", severity: 1) }
+    expect { log.add("A1", nil) }
       .not_to output("Category 1: A\n").to_stderr
-    expect { log.add("Category 1", nil, "B", severity: 2) }
+    expect { log.add("A2", nil) }
       .not_to output("Category 1: B\n").to_stderr
-    expect { log.add("Category 1", nil, "C", severity: 3) }
+    expect { log.add("A3", nil) }
       .not_to output("Category 1: C\n").to_stderr
-    expect { log.add("Category 2", nil, "A", severity: 1) }
+    expect { log.add("A4", nil) }
       .not_to output("Category 2: A\n").to_stderr
-    expect { log.add("Category 2", nil, "B", severity: 2) }
+    expect { log.add("A5", nil) }
       .not_to output("Category 2: B\n").to_stderr
-    expect { log.add("Category 2", nil, "C", severity: 3) }
+    expect { log.add("A6", nil) }
       .not_to output("Category 2: C\n").to_stderr
-    expect { log.add("Category 3", nil, "A", severity: 1) }
+    expect { log.add("A7", nil) }
       .to output("Category 3: A\n").to_stderr
-    expect { log.add("Category 3", nil, "B", severity: 2) }
+    expect { log.add("A8", nil) }
       .not_to output("Category 3: B\n").to_stderr
-    expect { log.add("Category 3", nil, "C", severity: 3) }
+    expect { log.add("A9", nil) }
       .not_to output("Category 3: C\n").to_stderr
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
@@ -327,8 +484,10 @@ RSpec.describe Metanorma::Utils do
 
   it "deals with illegal characters in log" do
     FileUtils.rm_f("log.err.html")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 1", nil, "é\xc2")
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "é\xc2", severity: 2, category: "Category 1" },
+    )
+    log.add("A", nil)
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
@@ -350,10 +509,12 @@ RSpec.describe Metanorma::Utils do
 
   it "deals with long strings in log" do
     FileUtils.rm_f("log.err.html")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 1",
-            "ID AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+             severity: 2, category: "Category 1" },
+    )
+    log.add("A",
+            "ID AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
@@ -385,8 +546,10 @@ RSpec.describe Metanorma::Utils do
       </stem></a></xml>
     INPUT
     FileUtils.rm_f("log.err.html")
-    log = Metanorma::Utils::Log.new
-    log.add("Category 2", xml.at("//xml/a"), "Message 3")
+    log = Metanorma::Utils::Log.new(
+      "A": { error: "Message 3", severity: 2, category: "Category 2" },
+    )
+    log.add("A", xml.at("//xml/a"))
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
