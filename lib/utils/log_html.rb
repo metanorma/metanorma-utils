@@ -137,14 +137,10 @@ module Metanorma
       def sort_messages_by_category_and_key
         @msg.keys.sort do |a, b|
           cat_cmp = @msg[a][:category] <=> @msg[b][:category]
-          cat_cmp.zero? ? compare_message_keys(a, b) : cat_cmp
+          a_parts = parse_message_key(a)
+          b_parts = parse_message_key(b)
+          cat_cmp.zero? ? compare_message_keys(a_parts, b_parts) : cat_cmp
         end
-      end
-
-      def compare_message_keys(key_a, key_b)
-        a_parts = parse_message_key(key_a)
-        b_parts = parse_message_key(key_b)
-        compare_key_parts(a_parts, b_parts)
       end
 
       def parse_message_key(key)
@@ -155,7 +151,6 @@ module Metanorma
       def compare_key_parts(a_parts, b_parts)
         a_str, a_num = a_parts
         b_str, b_num = b_parts
-
         if a_num.nil? || b_num.nil?
           a_str <=> b_str
         else
