@@ -139,7 +139,7 @@ module Metanorma
           cat_cmp = @msg[a][:category] <=> @msg[b][:category]
           a_parts = parse_message_key(a)
           b_parts = parse_message_key(b)
-          cat_cmp.zero? ? compare_message_keys(a_parts, b_parts) : cat_cmp
+          cat_cmp.zero? ? compare_key_parts(a_parts, b_parts) : cat_cmp
         end
       end
 
