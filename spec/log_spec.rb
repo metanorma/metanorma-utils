@@ -430,8 +430,7 @@ RSpec.describe Metanorma::Utils do
     FileUtils.rm_f("log.err.html")
     log = Metanorma::Utils::Log.new(
       "A1": { error: "A", severity: 1, category: "Category 1" },
-      "A2": { error: "B", severity: 2, category: "
-Category 1" },
+      "A2": { error: "B", severity: 2, category: "Category 1" },
       "A3": { error: "C", severity: 3, category: "Category 1" },
       "A4": { error: "A", severity: 1, category: "Category 2" },
       "A5": { error: "B", severity: 2, category: "Category 2" },
@@ -439,9 +438,11 @@ Category 1" },
       "A7": { error: "A", severity: 1, category: "Category 3" },
       "A8": { error: "B", severity: 2, category: "Category 3" },
       "A9": { error: "C", severity: 3, category: "Category 3" },
+      "A10": { error: "C", severity: 1, category: "Category 3" },
     )
     log.suppress_log = { severity: 2,
-                         category: ["Category 1", "Category 2"] }
+                         category: ["Category 1", "Category 2"],
+                         error_ids: ["A10"] }
     expect { log.add("A1", nil) }
       .not_to output("Category 1: A\n").to_stderr
     expect { log.add("A2", nil) }
@@ -460,6 +461,8 @@ Category 1" },
       .not_to output("Category 3: B\n").to_stderr
     expect { log.add("A9", nil) }
       .not_to output("Category 3: C\n").to_stderr
+    expect { log.add("A10", nil) }
+      .not_to output("Category 3: A\n").to_stderr
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")

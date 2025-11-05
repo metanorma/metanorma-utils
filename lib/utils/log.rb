@@ -12,7 +12,7 @@ module Metanorma
         @log = {}
         @c = HTMLEntities.new
         @mapid = {}
-        @suppress_log = { severity: 4, category: [] }
+        @suppress_log = { severity: 4, category: [], error_ids: [] }
         @msg = messages.each_value do |v|
           v[:error] = v[:error]
             .encode("UTF-8", invalid: :replace, undef: :replace)
@@ -69,7 +69,8 @@ module Metanorma
         category =  @msg[id][:category]
         category && /^Fetching /.match?(@msg[id][:error]) ||
           @suppress_log[:severity] <= @msg[id][:severity] ||
-          @suppress_log[:category].include?(category)
+          @suppress_log[:category].include?(category) ||
+          @suppress_log[:error_ids].include?(id.to_s)
       end
 
       def suppress_display?(category, _loc, _msg, display)
