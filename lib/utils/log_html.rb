@@ -131,7 +131,7 @@ module Metanorma
 
       def format_error_line(key)
         padded_key = key.to_s.ljust(12)
-        "\t#{padded_key}: #{@msg[key][:error]}"
+        "\t#{padded_key}: #{@msg[key][:error].gsub("\n", ' ')}"
       end
 
       def sort_messages_by_category_and_key
