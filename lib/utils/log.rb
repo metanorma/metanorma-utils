@@ -146,15 +146,6 @@ module Metanorma
         [loc, anchor, id]
       end
 
-      def anchor(node)
-        if node.respond_to?(:to_xml) && node.respond_to?(:parent)
-          while !node.nil? && node["id"].nil? && node.respond_to?(:parent)
-            node = node.parent
-          end
-          node.respond_to?(:parent) ? "ID #{node['anchor'] || node['id']}" : ""
-        end
-      end
-
       def line(node, msg)
         if node.respond_to?(:line) && !node.line.nil?
           "#{'%06d' % node.line}"
@@ -181,6 +172,30 @@ module Metanorma
           sub and s.replace(sub)
         end
         ret.to_xml
+      end
+
+      def filter_locations(xml)
+        @suppress_log[:locations].empty? and return
+        doc = AnchorRanges.new(xml)
+        @log.transform_values do |entries|
+          entries.reject do |entry|
+            entry_in_suppress_range?(doc, entry)
+          end
+        end
+      end
+
+      def entry_in_suppress_range?(doc, entry)
+        # Use anchor if present, otherwise use id
+        node_identifier = entry[:anchor] || entry[:id]
+        return false if node_identifier.nil?
+
+        @suppress_log[:locations].each do |loc|
+          doc.in_range?(node_identifier, loc[:from],
+                        loc[:to] || loc[:from]) or next
+          loc[:error_ids].nil? || loc[:error_ids].empty? || loc[:error_ids]
+            .include?(entry[:error_id].to_s) and return true
+        end
+        false
       end
     end
   end

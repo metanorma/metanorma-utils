@@ -142,7 +142,7 @@ RSpec.describe Metanorma::Utils do
     expect(File.exist?("log.err.html")).to be true
     expect(File.exist?("log.txt")).to be false
     file = File.read("log.err.html", encoding: "utf-8")
-    #{File.join('.', 'log.html')}
+    # {File.join('.', 'log.html')}
     expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
@@ -574,5 +574,134 @@ RSpec.describe Metanorma::Utils do
       </tbody></table>
       </body></html>
     OUTPUT
+  end
+
+  it "filters log messages by location ranges" do
+    # Create XML document with anchors and ids
+    xml = Nokogiri::XML(<<~INPUT)
+      <document>
+        <section id="sec1" anchor="intro">
+          <title id="title1">Introduction</title>
+          <para id="para1" anchor="p1">First paragraph</para>
+          <para id="para2" anchor="p2">Second paragraph</para>
+        </section>
+        <section id="sec2" anchor="main">
+          <subsection id="subsec1" anchor="sub1">
+            <para id="para3" anchor="p3">Nested paragraph</para>
+            <para id="para4" anchor="p4">Another nested</para>
+          </subsection>
+          <para id="para5" anchor="p5">Main section para</para>
+        </section>
+        <section id="sec3" anchor="conclusion">
+          <para id="para6" anchor="p6">Conclusion para</para>
+        </section>
+      </document>
+    INPUT
+
+    # Create messages with various categories and severities
+    messages = {}
+    (1..25).each do |i|
+      error_id = "ERR#{i}"
+      messages[error_id.to_sym] = {
+        error: "Message #{i}",
+        severity: i % 3,
+        category: "Category #{(i % 3) + 1}",
+      }
+    end
+
+    log = Metanorma::Utils::Log.new(messages)
+
+    # Add messages to various locations
+    # Messages in intro section (will be suppressed by first rule)
+    log.add("ERR1", xml.at("//section[@anchor='intro']"))
+    log.add("ERR2", xml.at("//para[@id='para1']"))
+    log.add("ERR3", xml.at("//para[@id='para2']"))
+
+    # Messages in main section, within sub1 to p5 range
+    # (will be suppressed by second rule)
+    log.add("ERR4", xml.at("//subsection[@anchor='sub1']"))
+    log.add("ERR5", xml.at("//para[@id='para3']"))
+    log.add("ERR6", xml.at("//para[@id='para4']"))
+    log.add("ERR7", xml.at("//para[@id='para5']"))
+
+    # Messages in conclusion section
+    # (will be selectively suppressed by third rule)
+    log.add("ERR8", xml.at("//section[@anchor='conclusion']")) # Type A error
+    log.add("ERR9", xml.at("//para[@id='para6']")) # Type B error
+    log.add("ERR10", xml.at("//para[@id='para6']")) # Type C error -
+    # not suppressed
+
+    # Messages without node location (string locations - should not be filtered)
+    log.add("ERR11", "Manual location 1")
+    log.add("ERR12", "Manual location 2")
+
+    # Messages with nil location (should not be filtered)
+    log.add("ERR13", nil)
+
+    # Additional messages in various sections for more comprehensive test
+    log.add("ERR14", xml.at("//title[@id='title1']")) # In intro - suppressed
+    log.add("ERR15", xml.at("//para[@id='para3']")) # In sub1-p5 range -
+    # suppressed
+    log.add("ERR16", xml.at("//section[@id='sec2']")) # main section
+    # but not in sub1-p5 - not suppressed
+    log.add("ERR17", xml.at("//para[@id='para6']"))  # In conclusion
+    log.add("ERR18", xml.at("//para[@id='para6']"))  # In conclusion
+    log.add("ERR19", xml.at("//para[@id='para1']"))  # In intro - suppressed
+    log.add("ERR20", xml.at("//para[@id='para4']"))  # In sub1-p5 range -
+    # suppressed
+
+    # Messages outside all suppressed ranges
+    log.add("ERR21", "Outside location")
+    log.add("ERR22", nil)
+
+    # Set up location-based suppression
+    log.suppress_log = {
+      severity: 4,
+      category: [],
+      error_ids: [],
+      locations: [
+        { from: "intro" }, # Suppress all messages in intro section
+        { from: "sub1", to: "p5" }, # Suppress all messages from sub1 to p5
+        { from: "conclusion", error_ids: ["ERR8", "ERR9"] },
+        # Suppress only ERR8 and ERR9 in conclusion
+      ],
+    }
+
+    # Apply location filtering
+    log.xml = xml
+    filtered_log = log.filter_locations(xml)
+
+    # Count messages before filtering
+    total_before = log.messages.length
+    expect(total_before).to eq 22
+
+    # Update log with filtered results
+    log.instance_variable_set(:@log, filtered_log)
+
+    # Count messages after filtering
+    total_after = log.messages.length
+
+    # Expected to remain:
+    # - ERR11, ERR12 (string locations)
+    # - ERR13 (nil location)
+    # - ERR10, ERR17, ERR18 (in conclusion but not in error_ids list)
+    # - ERR16 (in main section but before sub1)
+    # - ERR21, ERR22 (outside locations)
+    expect(total_after).to eq 9
+
+    # Verify specific messages are present
+    remaining_error_ids = log.messages.map { |m| m[:error_id].to_s }
+    expect(remaining_error_ids)
+      .to include("ERR10", "ERR11", "ERR12", "ERR13",
+                  "ERR16", "ERR17", "ERR18", "ERR21", "ERR22")
+
+    # Verify specific messages were filtered out
+    expect(remaining_error_ids)
+      .not_to include("ERR1", "ERR2", "ERR3", "ERR14", "ERR19") # intro section
+    expect(remaining_error_ids)
+      .not_to include("ERR4", "ERR5", "ERR6", "ERR7", "ERR15", "ERR20")
+    # sub1-p5 range
+    expect(remaining_error_ids)
+      .not_to include("ERR8", "ERR9") # conclusion with error_ids
   end
 end
