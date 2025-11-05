@@ -115,7 +115,7 @@ module Metanorma
       def display_messages
         grouped = group_messages_by_category
         grouped.map { |cat, keys| format_category_section(cat, keys) }
-          .join("\n")
+          .join("\n\n")
       end
 
       def group_messages_by_category
