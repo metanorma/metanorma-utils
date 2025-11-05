@@ -45,8 +45,8 @@ HTML_HDR = <<~HTML.freeze
 HTML
 
 TBL_HDR = <<~HTML.freeze
-  <thead><th width="5%">Line</th><th width="20%">ID</th>
-  <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+  <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+  <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
 HTML
 
 def break_up_test(str)

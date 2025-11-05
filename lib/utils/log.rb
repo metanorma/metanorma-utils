@@ -12,7 +12,8 @@ module Metanorma
         @log = {}
         @c = HTMLEntities.new
         @mapid = {}
-        @suppress_log = { severity: 4, category: [], error_ids: [] }
+        @suppress_log = { severity: 4, category: [], error_ids: [],
+                          locations: [] }
         @msg = messages.each_value do |v|
           v[:error] = v[:error]
             .encode("UTF-8", invalid: :replace, undef: :replace)
@@ -41,8 +42,7 @@ module Metanorma
 
       def add(id, loc, display: true, params: [])
         m = add_prep(id) or return
-        msg = create_entry(loc, m[:error],
-                           m[:severity], params)
+        msg = create_entry(loc, m[:error], m[:severity], id, params)
         @log[m[:category]] << msg
         loc = loc.nil? ? "" : "(#{current_location(loc)}): "
         suppress_display?(m[:category], loc, msg, display) or
@@ -78,11 +78,12 @@ module Metanorma
           !display
       end
 
-      def create_entry(loc, msg, severity, params)
+      def create_entry(loc, msg, severity, error_id, params)
         interpolated = interpolate_msg(msg, params)
-        item = { location: current_location(loc), severity: severity,
+        loc_str, anchor, node_id = current_location(loc)
+        item = { error_id: error_id, location: loc_str, severity: severity,
                  error: interpolated, context: context(loc),
-                 line: line(loc, msg) }
+                 line: line(loc, msg), anchor: anchor, id: node_id }
         if item[:error].include?(" :: ")
           a = item[:error].split(" :: ", 2)
           item[:context] = a[1]
@@ -103,34 +104,54 @@ module Metanorma
       end
 
       def current_location(node)
-        if node.nil? then ""
-        elsif node.respond_to?(:id) && !node.id.nil? then "ID #{node.id}"
-        elsif node.respond_to?(:id) && node.id.nil? && node.respond_to?(:parent)
-          while !node.nil? && node.id.nil?
-            node = node.parent
-          end
-          node.nil? ? "" : "ID #{node.id}"
-        elsif node.respond_to?(:to_xml) && node.respond_to?(:parent)
+        anchor = nil
+        id = nil
+        ret = if node.nil? then ""
+              elsif node.respond_to?(:id) && !node.id.nil? then "ID #{node.id}"
+              elsif node.respond_to?(:id) && node.id.nil? && node.respond_to?(:parent)
+                while !node.nil? && node.id.nil?
+                  node = node.parent
+                end
+                node.nil? ? "" : "ID #{node.id}"
+              elsif node.respond_to?(:to_xml) && node.respond_to?(:parent)
+                loc, anchor, id = xml_current_location(node)
+                loc
+              elsif node.is_a? String then node
+              elsif node.respond_to?(:lineno) && !node.lineno.nil? &&
+                  !node.lineno.empty?
+                "Asciidoctor Line #{'%06d' % node.lineno}"
+              elsif node.respond_to?(:line) && !node.line.nil?
+                "XML Line #{'%06d' % node.line}"
+              elsif node.respond_to?(:parent)
+                while !node.nil? &&
+                    (!node.respond_to?(:level) || node.level.positive?) &&
+                    (!node.respond_to?(:context) || node.context != :section)
+                  node = node.parent
+                  return "Section: #{node.title}" if node.respond_to?(:context) &&
+                    node&.context == :section
+                end
+                "??"
+              else "??"
+              end
+        [ret, anchor, id]
+      end
+
+      def xml_current_location(node)
+        while !node.nil? && node["id"].nil? && node.respond_to?(:parent)
+          node = node.parent
+        end
+        anchor = node["anchor"]
+        id = node["id"]
+        loc = node.respond_to?(:parent) ? "ID #{anchor || id}" : ""
+        [loc, anchor, id]
+      end
+
+      def anchor(node)
+        if node.respond_to?(:to_xml) && node.respond_to?(:parent)
           while !node.nil? && node["id"].nil? && node.respond_to?(:parent)
             node = node.parent
           end
           node.respond_to?(:parent) ? "ID #{node['anchor'] || node['id']}" : ""
-        elsif node.is_a? String then node
-        elsif node.respond_to?(:lineno) && !node.lineno.nil? &&
-            !node.lineno.empty?
-          "Asciidoctor Line #{'%06d' % node.lineno}"
-        elsif node.respond_to?(:line) && !node.line.nil?
-          "XML Line #{'%06d' % node.line}"
-        elsif node.respond_to?(:parent)
-          while !node.nil? &&
-              (!node.respond_to?(:level) || node.level.positive?) &&
-              (!node.respond_to?(:context) || node.context != :section)
-            node = node.parent
-            return "Section: #{node.title}" if node.respond_to?(:context) &&
-              node&.context == :section
-          end
-          "??"
-        else "??"
         end
       end
 

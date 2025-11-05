@@ -51,8 +51,8 @@ module Metanorma
       def write_key(file, key)
         file.puts <<~HTML
           <h2 id="#{to_ncname(key)}">#{key}</h2>\n<table border="1">
-          <thead><th width="5%">Line</th><th width="20%">ID</th>
-          <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+          <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+          <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
           <tbody>
         HTML
         @log[key].sort_by { |a| [a[:line], a[:location], a[:error]] }
@@ -107,7 +107,7 @@ module Metanorma
         entry[:context] &&= @c.encode(break_up_long_str(entry[:context], 40, 2))
         file.print <<~HTML
           <tr class="severity#{entry[:severity]}">
-          <td>#{entry[:line]}</td><th><code>#{entry[:location]}</code></th>
+          <td>#{entry[:line]}</td><th><code>#{entry[:location]}</code></th><td>#{entry[:error_id]}</td>
           <td>#{entry[:error]}</td><td><pre>#{entry[:context]}</pre></td><td>#{entry[:severity]}</td></tr>
         HTML
       end

@@ -93,32 +93,32 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(log.abort_messages).to be_equivalent_to ["Message 1", "Message 4"]
     expect(log.messages).to be_equivalent_to [
-      { location: "", severity: 0, error: "Message 1", context: "",
-        line: "000000" },
-      { location: "node", severity: 1, error: "Message 2", context: nil,
-        line: "000000" },
-      { location: "xyz", severity: 2, error: "Message 3",
-        context: "<b id=\"xyz\">\nc\n</b>", line: "000003" },
-      { location: "", severity: 0, error: "Message 4",
-        context: "<a>\n<b id=\"xyz\">\nc\n</b></a>", line: "000002" },
-      { location: "", severity: 1, error: "Message 5", context: "Context",
-        line: "000002" },
-      { location: "def", severity: 1, error: "Message 6", context: "<c id=\"abc\" anchor=\"def\"/>",
-        line: "000002" },
-      { location: "", severity: 2, error: "Message 6.1", context: "ID: ",
-        line: "000000" },
-      { location: "B", severity: 2, error: "Message 6.2", context: "ID: B",
-        line: "000000" },
-      { location: "", severity: 2, error: "Message 6.3", context: "ID: ",
-        line: "000000" },
-      { location: "Asciidoctor Line 000012", severity: 2,
-        error: "XML Line 1212:40, Message 7.1", context: "Line: 12", line: "1212" },
-      { location: "??", severity: 2, error: "Message 7.2",
-        context: "Line: ", line: "000000" },
-      { location: "XML Line 000013", severity: 2, error: "Message 7.3",
-        context: "Line: 13", line: "000013" },
-      { location: "??", severity: 2, error: "Message 7.4",
-        context: "Line: ", line: "000000" },
+      { error_id: "FLAVOR_3", location: "", severity: 0, error: "Message 1",
+        context: "", line: "000000", anchor: nil, id: nil },
+      { error_id: "BMX_44", location: "node", severity: 1,
+        error: "Message 2", context: nil, line: "000000", anchor: nil, id: nil },
+      { error_id: "FLAVOR_5", location: "xyz", severity: 2,
+        error: "Message 3", context: "<b id=\"xyz\">\nc\n</b>", line: "000003", anchor: nil, id: "xyz" },
+      { error_id: "FLAVOR_10", location: "", severity: 0, error: "Message 4",
+        context: "<a>\n<b id=\"xyz\">\nc\n</b>\n<c id=\"abc\" anchor=\"L&#xF6;we\"/>\n</a>", line: "000002", anchor: nil, id: nil },
+      { error_id: "FLAVOR_1", location: "", severity: 1, error: "Message 5",
+        context: "Context", line: "000002", anchor: nil, id: nil },
+      { error_id: "BMX_4", location: "Löwe", severity: 1, error: "Message 6",
+        context: "<c id=\"abc\" anchor=\"L&#xF6;we\"/>", line: "000006", anchor: "Löwe", id: "abc" },
+      { error_id: "BMX_3", location: "", severity: 2, error: "Message 6.1",
+        context: "ID: ", line: "000000", anchor: nil, id: nil },
+      { error_id: "FLAVOR_2", location: "B", severity: 2,
+        error: "Message 6.2", context: "ID: B", line: "000000", anchor: nil, id: nil },
+      { error_id: "FLAVOR_50", location: "", severity: 2,
+        error: "Message 6.3", context: "ID: ", line: "000000", anchor: nil, id: nil },
+      { error_id: "FLAVOR_49", location: "Asciidoctor Line 000012",
+        severity: 2, error: "XML Line 1212:40, Message 7.1", context: "Line: 12", line: "1212", anchor: nil, id: nil },
+      { error_id: "FLAVOR_48", location: "??", severity: 2,
+        error: "Message 7.2", context: "Line: ", line: "000000", anchor: nil, id: nil },
+      { error_id: "FLAVOR_47", location: "XML Line 000013", severity: 2,
+        error: "Message 7.3", context: "Line: 13", line: "000013", anchor: nil, id: nil },
+      { error_id: "FLAVOR_46", location: "??", severity: 2,
+        error: "Message 7.4", context: "Line: ", line: "000000", anchor: nil, id: nil },
     ]
     expect(log.display_messages).to be_equivalent_to <<~OUTPUT
       Category 1:
@@ -142,6 +142,7 @@ RSpec.describe Metanorma::Utils do
     expect(File.exist?("log.err.html")).to be true
     expect(File.exist?("log.txt")).to be false
     file = File.read("log.err.html", encoding: "utf-8")
+    #{File.join('.', 'log.html')}
     expect(file).to be_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
@@ -153,76 +154,76 @@ RSpec.describe Metanorma::Utils do
 
       <li><p><b><a href="#Category_4">Category 4</a></b>: Severity 2: <b>4</b> errors</p></li>
       </ul>
-      <h2 id="Category_1">Category 1</h2>
-      <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th>
-      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-      <tbody>
-      <tr class="severity0">
-      <td></td><th><code>--</code></th>
-      <td>Message 1</td><td><pre></pre></td><td>0</td></tr>
-      <tr class="severity1">
-      <td></td><th><code>node</code></th>
-      <td>Message 2</td><td><pre></pre></td><td>1</td></tr>
-      </tbody></table>
-      <h2 id="Category_2">Category 2</h2>
-      <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th>
-      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-      <tbody>
-      <tr class="severity0">
-      <td>000002</td><th><code>--</code></th>
-      <td>Message 4</td><td><pre>&lt;a&gt;
-      &lt;b id=&quot;xyz&quot;&gt;
-      c
-      &lt;/b&gt;
-      &lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>0</td></tr>
-      <tr class="severity1">
-      <td>000002</td><th><code>--</code></th>
-      <td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
-      <tr class="severity2">
-      <td>000003</td><th><code><a href='#{File.join('.', 'log.html')}#ghi'>ghi</a></code></th>
-      <td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
-      c
-      &lt;/b&gt;</pre></td><td>2</td></tr>
-      <tr class="severity1">
-      <td>000006</td><th><code><a href='#{File.join('.', 'log.html')}#Löwe'>Löwe</a></code></th>
-      <td>Message 6</td><td><pre>&lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>1</td></tr>
-      </tbody></table>
-      <h2 id="Category_3">Category 3</h2>
-      <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th>
-      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-      <tbody>
-      <tr class="severity2">
-      <td></td><th><code>--</code></th>
-      <td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
-      <tr class="severity2">
-      <td></td><th><code>--</code></th>
-      <td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
-      <tr class="severity2">
-      <td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th>
-      <td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
-      </tbody></table>
-      <h2 id="Category_4">Category 4</h2>
-      <table border="1">
-      <thead><th width="5%">Line</th><th width="20%">ID</th>
-      <th width="30%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-      <tbody>
-      <tr class="severity2">
-      <td></td><th><code>??</code></th>
-      <td>Message 7.2</td><td><pre>Line: </pre></td><td>2</td></tr>
-      <tr class="severity2">
-      <td></td><th><code>??</code></th>
-      <td>Message 7.4</td><td><pre>Line: </pre></td><td>2</td></tr>
-      <tr class="severity2">
-      <td>000013</td><th><code>XML Line 000013</code></th>
-      <td>Message 7.3</td><td><pre>Line: 13</pre></td><td>2</td></tr>
-      <tr class="severity2">
-      <td>1212</td><th><code>Asciidoctor Line 000012</code></th>
-      <td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td><td>2</td></tr>
-      </tbody></table>
-      </body></html>
+       <h2 id="Category_1">Category 1</h2>
+       <table border="1">
+       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+       <tbody>
+       <tr class="severity0">
+       <td></td><th><code>--</code></th><td>FLAVOR_3</td>
+       <td>Message 1</td><td><pre></pre></td><td>0</td></tr>
+       <tr class="severity1">
+       <td></td><th><code>node</code></th><td>BMX_44</td>
+       <td>Message 2</td><td><pre></pre></td><td>1</td></tr>
+       </tbody></table>
+       <h2 id="Category_2">Category 2</h2>
+       <table border="1">
+       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+       <tbody>
+       <tr class="severity0">
+       <td>000002</td><th><code>--</code></th><td>FLAVOR_10</td>
+       <td>Message 4</td><td><pre>&lt;a&gt;
+       &lt;b id=&quot;xyz&quot;&gt;
+       c
+       &lt;/b&gt;
+       &lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>0</td></tr>
+       <tr class="severity1">
+       <td>000002</td><th><code>--</code></th><td>FLAVOR_1</td>
+       <td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
+       <tr class="severity2">
+       <td>000003</td><th><code><a href='#{File.join('.', 'log.html')}#ghi'>ghi</a></code></th><td>FLAVOR_5</td>
+       <td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
+       c
+       &lt;/b&gt;</pre></td><td>2</td></tr>
+       <tr class="severity1">
+       <td>000006</td><th><code><a href='#{File.join('.', 'log.html')}#Löwe'>Löwe</a></code></th><td>BMX_4</td>
+       <td>Message 6</td><td><pre>&lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>1</td></tr>
+       </tbody></table>
+       <h2 id="Category_3">Category 3</h2>
+       <table border="1">
+       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+       <tbody>
+       <tr class="severity2">
+       <td></td><th><code>--</code></th><td>BMX_3</td>
+       <td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
+       <tr class="severity2">
+       <td></td><th><code>--</code></th><td>FLAVOR_50</td>
+       <td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
+       <tr class="severity2">
+       <td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th><td>FLAVOR_2</td>
+       <td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
+       </tbody></table>
+       <h2 id="Category_4">Category 4</h2>
+       <table border="1">
+       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+       <tbody>
+       <tr class="severity2">
+       <td></td><th><code>??</code></th><td>FLAVOR_48</td>
+       <td>Message 7.2</td><td><pre>Line: </pre></td><td>2</td></tr>
+       <tr class="severity2">
+       <td></td><th><code>??</code></th><td>FLAVOR_46</td>
+       <td>Message 7.4</td><td><pre>Line: </pre></td><td>2</td></tr>
+       <tr class="severity2">
+       <td>000013</td><th><code>XML Line 000013</code></th><td>FLAVOR_47</td>
+       <td>Message 7.3</td><td><pre>Line: 13</pre></td><td>2</td></tr>
+       <tr class="severity2">
+       <td>1212</td><th><code>Asciidoctor Line 000012</code></th><td>FLAVOR_49</td>
+       <td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td><td>2</td></tr>
+       </tbody></table>
+       </body></html>
     OUTPUT
   end
 
@@ -252,10 +253,10 @@ RSpec.describe Metanorma::Utils do
     rescue SystemExit, RuntimeError
     end
     expect(log.messages).to be_equivalent_to [
-      { location: "", severity: 2, error: "Message 1", context: "",
-        line: "000000" },
-      { location: "", severity: 1,
-        error: "Message 2", context: "", line: "000000" },
+      { error_id: "A", location: "", severity: 2, error: "Message 1",
+        context: "", line: "000000", anchor: nil, id: nil },
+      { error_id: "B", location: "", severity: 1, error: "Message 2",
+        context: "", line: "000000", anchor: nil, id: nil },
     ]
   end
 
@@ -310,8 +311,8 @@ RSpec.describe Metanorma::Utils do
     expect { log.add("A", nil) }
       .to output("Category 1: A  B \n").to_stderr
     expect(log.messages).to be_equivalent_to [
-      { location: "", severity: 2, error: "A  B ",
-        context: "", line: "000000" },
+      { error_id: "A", location: "", severity: 2, error: "A  B ", context: "",
+        line: "000000", anchor: nil, id: nil },
     ]
     log.write("log.txt")
     file = File.read("log.err.html", encoding: "utf-8")
@@ -326,7 +327,7 @@ RSpec.describe Metanorma::Utils do
       #{TBL_HDR}
       <tbody>
       <tr class="severity2">
-      <td></td><th><code>--</code></th>
+      <td></td><th><code>--</code></th><td>A</td>
       <td>A  B </td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
@@ -339,8 +340,8 @@ RSpec.describe Metanorma::Utils do
     expect { log.add("A", nil, display: true, params: ["foo", "bar"]) }
       .to output("Category 1: A foo B bar\n").to_stderr
     expect(log.messages).to be_equivalent_to [
-      { location: "", severity: 2, error: "A foo B bar",
-        context: "", line: "000000" },
+      { error_id: "A", location: "", severity: 2, error: "A foo B bar",
+        context: "", line: "000000", anchor: nil, id: nil },
     ]
     log.write("log.txt")
     file = File.read("log.err.html", encoding: "utf-8")
@@ -355,7 +356,7 @@ RSpec.describe Metanorma::Utils do
       #{TBL_HDR}
       <tbody>
       <tr class="severity2">
-      <td></td><th><code>--</code></th>
+      <td></td><th><code>--</code></th><td>A</td>
       <td>A foo B bar</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
@@ -400,26 +401,26 @@ RSpec.describe Metanorma::Utils do
       #{TBL_HDR}
        <tbody>
        <tr class="severity2">
-       <td></td><th><code>--</code></th>
+       <td></td><th><code>--</code></th><td>A</td>
        <td>A</td><td><pre></pre></td><td>2</td></tr>
        <tr class="severity2">
-       <td></td><th><code>--</code></th>
+       <td></td><th><code>--</code></th><td>A</td>
        <td>A</td><td><pre></pre></td><td>2</td></tr>
        </tbody></table>
        <h2 id="Metanorma_XML_Syntax">Metanorma XML Syntax</h2>
        <table border="1">
       #{TBL_HDR}
-       <tbody>
-       <tr class="severity2">
-       <td></td><th><code>--</code></th>
-       <td>A</td><td><pre></pre></td><td>2</td></tr>
-       </tbody></table>
+      <tbody>
+      <tr class="severity2">
+      <td></td><th><code>--</code></th><td>B</td>
+      <td>A</td><td><pre></pre></td><td>2</td></tr>
+      </tbody></table>
        <h2 id="Relaton">Relaton</h2>
        <table border="1">
       #{TBL_HDR}
        <tbody>
        <tr class="severity2">
-       <td></td><th><code>--</code></th>
+       <td></td><th><code>--</code></th><td>C</td>
        <td>A</td><td><pre></pre></td><td>2</td></tr>
        </tbody></table>
        </body></html>
@@ -478,7 +479,7 @@ RSpec.describe Metanorma::Utils do
       #{TBL_HDR}
        <tbody>
        <tr class="severity1">
-       <td></td><th><code>--</code></th>
+       <td></td><th><code>--</code></th><td>A7</td>
        <td>A</td><td><pre></pre></td><td>1</td></tr>
        </tbody></table>
        </body></html>
@@ -504,7 +505,7 @@ RSpec.describe Metanorma::Utils do
       <table border="1">
       #{TBL_HDR}
       <tbody>
-      <tr class="severity2"><td></td><th><code>--</code></th><td>é�</td><td><pre></pre></td><td>2</td></tr>
+      <tr class="severity2"><td></td><th><code>--</code></th><td>A</td><td>é�</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
     OUTPUT
@@ -532,7 +533,7 @@ RSpec.describe Metanorma::Utils do
       #{TBL_HDR}
       <tbody>
       <tr class="severity2">
-      <td></td><th><code><a href='#{File.join('.', 'log.html')}#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'>AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA</a></code></th>
+      <td></td><th><code><a href='#{File.join('.', 'log.html')}#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'>AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA</a></code></th><td>A</td>
       <td>BBBBBBBBBBBBBBBBBBBB­BBBBBBBBBBBBBBBBBBBB­BBBBBBBB</td><td><pre></pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
@@ -566,7 +567,9 @@ RSpec.describe Metanorma::Utils do
       <table border="1">
       #{TBL_HDR}
       <tbody>
-      <tr class="severity2"><td>000002</td><th><code>--</code></th><td>Message 3</td><td><pre>&lt;a&gt;
+      <tr class="severity2">
+      <td>000002</td><th><code>--</code></th><td>A</td>
+      <td>Message 3</td><td><pre>&lt;a&gt;
       The number is &lt;latexmath&gt;\\1&lt;/latexmath&gt; &lt;/a&gt;</pre></td><td>2</td></tr>
       </tbody></table>
       </body></html>
