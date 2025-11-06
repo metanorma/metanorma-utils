@@ -25,21 +25,15 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
 
   let(:ranges) { Metanorma::Utils::AnchorRanges.new(doc) }
 
-  describe "#initialize" do
-    it "initializes with a Nokogiri document" do
-      expect(ranges.doc).to eq doc
-    end
-  end
-
-  describe "#anchor_id_map" do
-    it "memoizes the anchor_id_map" do
-      map1 = ranges.anchor_id_map
-      map2 = ranges.anchor_id_map
+  describe "#anchor_map" do
+    it "memoizes the anchor_map" do
+      map1 = ranges.anchor_map
+      map2 = ranges.anchor_map
       expect(map1.object_id).to eq map2.object_id
     end
 
     it "returns the correct map" do
-      map = ranges.anchor_id_map
+      map = ranges.anchor_map
       expect(map.first[:anchor]).to eq "intro"
       expect(map.first[:id]).to eq "sec1"
     end

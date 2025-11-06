@@ -2,7 +2,7 @@ require "spec_helper"
 require_relative "../lib/utils/anchor_ranges"
 
 RSpec.describe Metanorma::Utils::AnchorRanges do
-  describe "#anchor_id_map" do
+  describe "#anchor_map" do
     it "generates map with linear order" do
       doc = Nokogiri::XML(<<~XML)
         <root>
@@ -17,7 +17,7 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
       XML
 
       ranges = Metanorma::Utils::AnchorRanges.new(doc)
-      result = ranges.anchor_id_map
+      result = ranges.anchor_map
 
       expect(result.length).to eq 5
       expect(result[0][:id]).to eq "sec1"
@@ -44,7 +44,7 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
       XML
 
       ranges = Metanorma::Utils::AnchorRanges.new(doc)
-      result = ranges.anchor_id_map
+      result = ranges.anchor_map
 
       # sec1 should have next_anchor as a3 (skipping its children)
       expect(result[0][:next_anchor]).to eq "a3"
@@ -77,7 +77,7 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
       XML
 
       ranges = Metanorma::Utils::AnchorRanges.new(doc)
-      result = ranges.anchor_id_map
+      result = ranges.anchor_map
 
       # s1 should skip all descendants and point to s2
       expect(result[0][:anchor]).to eq "s1"
@@ -109,7 +109,7 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
       XML
 
       ranges = Metanorma::Utils::AnchorRanges.new(doc)
-      result = ranges.anchor_id_map
+      result = ranges.anchor_map
 
       expect(result[0][:id]).to eq "sec1"
       expect(result[0][:anchor]).to be_nil
@@ -128,7 +128,7 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
       XML
 
       ranges = Metanorma::Utils::AnchorRanges.new(doc)
-      result = ranges.anchor_id_map
+      result = ranges.anchor_map
 
       expect(result[0][:id]).to eq "sec1"
       expect(result[0][:anchor]).to eq "a1"
@@ -146,7 +146,7 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
       XML
 
       ranges = Metanorma::Utils::AnchorRanges.new(doc)
-      result = ranges.anchor_id_map
+      result = ranges.anchor_map
 
       expect(result).to be_empty
     end
@@ -161,7 +161,7 @@ RSpec.describe Metanorma::Utils::AnchorRanges do
       XML
 
       ranges = Metanorma::Utils::AnchorRanges.new(doc)
-      result = ranges.anchor_id_map
+      result = ranges.anchor_map
 
       # Last node should have nil next_anchor
       expect(result.last[:anchor]).to eq "p1"

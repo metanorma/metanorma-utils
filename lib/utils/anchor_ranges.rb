@@ -1,27 +1,19 @@
 module Metanorma
   module Utils
-    # AnchorRanges provides efficient range checking for nodes based on anchor positions
-    # in a document. It determines whether an arbitrary node falls within the range
-    # defined by two anchor points (A-B), where the range includes node A through
-    # all descendants of node B.
+    # AnchorRanges provides efficient range checking for nodes based on
+    # anchor positions in a document. It determines whether an arbitrary node
+    # falls within the range # defined by two anchor points (A-B), where
+    # the range includes node A through all descendants of node B.
     class AnchorRanges
-      attr_reader :doc, :anchor_map
+      attr_reader :anchor_map
 
       # Initialize with a Nokogiri document
       # @param doc [Nokogiri::XML::Document] The document to process
       def initialize(doc)
-        @doc = doc
-        @anchor_map = nil
+        @anchor_map = build_anchor_id_map(doc)
         @anchor_to_ord = nil
         @anchor_to_last_ord = nil
         @id_to_ord = nil
-      end
-
-      # Generate a map of all nodes with anchor or id attributes,
-      # recording their linear order and the next non-descendant anchor
-      # @return [Array<Hash>] Array of hashes with keys: :anchor, :id, :ord, :next_anchor
-      def anchor_id_map
-        @anchor_map ||= build_anchor_id_map
       end
 
       # Get mapping of anchor to ord
@@ -72,8 +64,11 @@ module Metanorma
 
       private
 
-      def build_anchor_id_map
-        nodes = @doc.xpath("//*[@id or @anchor]")
+      # Generate a map of all nodes with anchor or id attributes,
+      # recording their linear order and the next non-descendant anchor
+      # @return [Array<Hash>] Array of hashes with keys: :anchor, :id, :ord, :next_anchor
+      def build_anchor_id_map(doc)
+        nodes = doc.xpath("//*[@id or @anchor]")
         nodes.each_with_index.map do |node, i|
           {
             anchor: node["anchor"],
@@ -112,7 +107,7 @@ module Metanorma
 
       def build_anchor_to_ord
         hash = {}
-        anchor_id_map.each do |entry|
+        @anchor_map.each do |entry|
           hash[entry[:anchor]] = entry[:ord] if entry[:anchor]
         end
         hash
@@ -120,7 +115,7 @@ module Metanorma
 
       def build_id_to_ord
         hash = {}
-        anchor_id_map.each do |entry|
+        @anchor_map.each do |entry|
           hash[entry[:id]] = entry[:ord] if entry[:id]
         end
         hash
@@ -128,7 +123,7 @@ module Metanorma
 
       def build_anchor_to_last_ord
         hash = {}
-        anchor_id_map.each do |entry|
+        @anchor_map.each do |entry|
           next unless entry[:anchor]
 
           # The last descendant is the ord right before the next_anchor
@@ -138,7 +133,7 @@ module Metanorma
             hash[entry[:anchor]] = next_ord - 1 if next_ord
           else
             # No next anchor means this extends to the end of the document
-            hash[entry[:anchor]] = anchor_id_map.last[:ord]
+            hash[entry[:anchor]] = @anchor_map.last[:ord]
           end
         end
         hash
