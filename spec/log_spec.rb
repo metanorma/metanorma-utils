@@ -601,7 +601,7 @@ RSpec.describe Metanorma::Utils do
     # Create messages with various categories and severities
     messages = {}
     (1..25).each do |i|
-      error_id = "ERR#{i}"
+      error_id = "ERR#{'%02d' % i}"
       messages[error_id.to_sym] = {
         error: "Message #{i}",
         severity: i % 3,
@@ -613,21 +613,21 @@ RSpec.describe Metanorma::Utils do
 
     # Add messages to various locations
     # Messages in intro section (will be suppressed by first rule)
-    log.add("ERR1", xml.at("//section[@anchor='intro']"))
-    log.add("ERR2", xml.at("//para[@id='para1']"))
-    log.add("ERR3", xml.at("//para[@id='para2']"))
+    log.add("ERR01", xml.at("//section[@anchor='intro']"))
+    log.add("ERR02", xml.at("//para[@id='para1']"))
+    log.add("ERR03", xml.at("//para[@id='para2']"))
 
     # Messages in main section, within sub1 to p5 range
     # (will be suppressed by second rule)
-    log.add("ERR4", xml.at("//subsection[@anchor='sub1']"))
-    log.add("ERR5", xml.at("//para[@id='para3']"))
-    log.add("ERR6", xml.at("//para[@id='para4']"))
-    log.add("ERR7", xml.at("//para[@id='para5']"))
+    log.add("ERR04", xml.at("//subsection[@anchor='sub1']"))
+    log.add("ERR05", xml.at("//para[@id='para3']"))
+    log.add("ERR06", xml.at("//para[@id='para4']"))
+    log.add("ERR07", xml.at("//para[@id='para5']"))
 
     # Messages in conclusion section
     # (will be selectively suppressed by third rule)
-    log.add("ERR8", xml.at("//section[@anchor='conclusion']")) # Type A error
-    log.add("ERR9", xml.at("//para[@id='para6']")) # Type B error
+    log.add("ERR08", xml.at("//section[@anchor='conclusion']")) # Type A error
+    log.add("ERR09", xml.at("//para[@id='para6']")) # Type B error
     log.add("ERR10", xml.at("//para[@id='para6']")) # Type C error -
     # not suppressed
 
@@ -662,21 +662,23 @@ RSpec.describe Metanorma::Utils do
       locations: [
         { from: "intro" }, # Suppress all messages in intro section
         { from: "sub1", to: "p5" }, # Suppress all messages from sub1 to p5
-        { from: "conclusion", error_ids: ["ERR8", "ERR9"] },
-        # Suppress only ERR8 and ERR9 in conclusion
+        { from: "conclusion", error_ids: ["ERR08", "ERR09"] },
+        # Suppress only ERR08 and ERR09 in conclusion
       ],
     }
 
-    # Apply location filtering
-    log.xml = xml
-    filtered_log = log.filter_locations(xml)
-
     # Count messages before filtering
-    total_before = log.messages.length
-    expect(total_before).to eq 22
+    expect(log.messages.length).to eq 22
 
-    # Update log with filtered results
-    log.instance_variable_set(:@log, filtered_log)
+    # No location filtering, no change in log
+    FileUtils.rm_f("log.err.html")
+    log.write("log.txt")
+    expect(log.messages.length).to eq 22
+
+    # Apply location filtering, as part of outputting log to disk
+    log.add_error_ranges(xml)
+    FileUtils.rm_f("log.err.html")
+    log.write("log.txt")
 
     # Count messages after filtering
     total_after = log.messages.length
@@ -697,11 +699,19 @@ RSpec.describe Metanorma::Utils do
 
     # Verify specific messages were filtered out
     expect(remaining_error_ids)
-      .not_to include("ERR1", "ERR2", "ERR3", "ERR14", "ERR19") # intro section
+      .not_to include("ERR01", "ERR02", "ERR03", "ERR14", "ERR19") # intro section
     expect(remaining_error_ids)
-      .not_to include("ERR4", "ERR5", "ERR6", "ERR7", "ERR15", "ERR20")
+      .not_to include("ERR04", "ERR05", "ERR06", "ERR07", "ERR15", "ERR20")
     # sub1-p5 range
     expect(remaining_error_ids)
-      .not_to include("ERR8", "ERR9") # conclusion with error_ids
+      .not_to include("ERR08", "ERR09") # conclusion with error_ids
+
+    file = File.read("log.err.html", encoding: "utf-8")
+    expect(file).to include("ERR10", "ERR11", "ERR12", "ERR13",
+                            "ERR16", "ERR17", "ERR18", "ERR21", "ERR22")
+    expect(file).not_to include("ERR01", "ERR02", "ERR03", "ERR14", "ERR19")
+    expect(file).not_to include("ERR04", "ERR05", "ERR06", "ERR07", "ERR15",
+                                "ERR20")
+    expect(file).not_to include("ERR08", "ERR09")
   end
 end

@@ -41,6 +41,7 @@ module Metanorma
 
       def write(file = nil)
         (!file && @filename) or save_to(file || "metanorma", nil)
+        filter_locations
         File.open(@filename, "w:UTF-8") do |f|
           f.puts log_hdr(@filename)
           @log.each_key { |key| write_key(f, key) }

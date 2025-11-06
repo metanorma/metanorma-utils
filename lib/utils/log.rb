@@ -24,6 +24,12 @@ module Metanorma
         @msg.merge!(messages)
       end
 
+      # pass Nokogiri XML in, to record where all the anchors and ids
+      # are in the target document
+      def add_error_ranges(xml)
+        @anchor_ranges = AnchorRanges.new(xml)
+      end
+
       def save_to(filename, dir = nil)
         dir ||= File.dirname(filename)
         new_fn = filename.sub(/\.err\.html$/, ".html")
@@ -79,10 +85,9 @@ module Metanorma
       end
 
       def create_entry(loc, msg, severity, error_id, params)
-        interpolated = interpolate_msg(msg, params)
         loc_str, anchor, node_id = current_location(loc)
         item = { error_id: error_id, location: loc_str, severity: severity,
-                 error: interpolated, context: context(loc),
+                 error: interpolate_msg(msg, params), context: context(loc),
                  line: line(loc, msg), anchor: anchor, id: node_id }
         if item[:error].include?(" :: ")
           a = item[:error].split(" :: ", 2)
@@ -108,7 +113,8 @@ module Metanorma
         id = nil
         ret = if node.nil? then ""
               elsif node.respond_to?(:id) && !node.id.nil? then "ID #{node.id}"
-              elsif node.respond_to?(:id) && node.id.nil? && node.respond_to?(:parent)
+              elsif node.respond_to?(:id) && node.id.nil? &&
+                  node.respond_to?(:parent)
                 while !node.nil? && node.id.nil?
                   node = node.parent
                 end
@@ -127,8 +133,8 @@ module Metanorma
                     (!node.respond_to?(:level) || node.level.positive?) &&
                     (!node.respond_to?(:context) || node.context != :section)
                   node = node.parent
-                  return "Section: #{node.title}" if node.respond_to?(:context) &&
-                    node&.context == :section
+                  node.respond_to?(:context) && node&.context == :section and
+                    return "Section: #{node.title}"
                 end
                 "??"
               else "??"
@@ -174,25 +180,35 @@ module Metanorma
         ret.to_xml
       end
 
-      def filter_locations(xml)
-        @suppress_log[:locations].empty? and return
-        doc = AnchorRanges.new(xml)
-        @log.transform_values do |entries|
+      def filter_locations?
+        @suppress_log[:locations] && !@suppress_log[:locations].empty? or return
+        @anchor_ranges or return
+        true
+      end
+
+      def filter_locations
+        filter_locations? or return
+        @log.transform_values! do |entries|
           entries.reject do |entry|
-            entry_in_suppress_range?(doc, entry)
+            # Use anchor if present, otherwise use id
+            entry_in_suppress_range?(entry, entry[:anchor] || entry[:id])
           end
         end
       end
 
-      def entry_in_suppress_range?(doc, entry)
-        # Use anchor if present, otherwise use id
-        node_identifier = entry[:anchor] || entry[:id]
-        return false if node_identifier.nil?
+      def entry_in_suppress_range_prep(entry)
+        entry[:to] ||= entry[:from]
+        entry[:error_ids] ||= []
+        entry
+      end
 
+      def entry_in_suppress_range?(entry, id)
+        # Use anchor if present, otherwise use id
+        id.nil? and return false
         @suppress_log[:locations].each do |loc|
-          doc.in_range?(node_identifier, loc[:from],
-                        loc[:to] || loc[:from]) or next
-          loc[:error_ids].nil? || loc[:error_ids].empty? || loc[:error_ids]
+          entry_in_suppress_range_prep(loc)
+          @anchor_ranges.in_range?(id, loc[:from], loc[:to]) or next
+          loc[:error_ids].empty? || loc[:error_ids]
             .include?(entry[:error_id].to_s) and return true
         end
         false
