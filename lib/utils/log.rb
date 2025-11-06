@@ -4,7 +4,7 @@ require_relative "log_html"
 module Metanorma
   module Utils
     class Log
-      attr_writer :xml, :suppress_log
+      attr_accessor :suppress_log
 
       # messages: hash of message IDs to {error, severity, category}
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
