@@ -147,8 +147,8 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 0: <b>1</b> errors; Severity 1: <b>1</b> errors</p></li>
-      <li><p><b><a href="#Category_2">Category 2</a></b>: Severity 0: <b>1</b> errors; Severity 1: <b>2</b> errors; Severity 2: <b>1</b> errors</p></li>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 0: <b>1</b> error; Severity 1: <b>1</b> error</p></li>
+      <li><p><b><a href="#Category_2">Category 2</a></b>: Severity 0: <b>1</b> error; Severity 1: <b>2</b> errors; Severity 2: <b>1</b> error</p></li>
 
       <li><p><b><a href="#Category_3">Category 3</a></b>: Severity 2: <b>3</b> errors</p></li>
 
@@ -320,7 +320,7 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> error</p></li>
       </ul>
       <h2 id="Category_1">Category 1</h2>
       <table border="1">
@@ -349,7 +349,7 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> error</p></li>
       </ul>
       <h2 id="Category_1">Category 1</h2>
       <table border="1">
@@ -393,8 +393,8 @@ RSpec.describe Metanorma::Utils do
       </head>
       <body><h1>./log.err.html errors</h1>
        <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>2</b> errors</p></li>
-       <li><p><b><a href="#Metanorma_XML_Syntax">Metanorma XML Syntax</a></b>: Severity 2: <b>1</b> errors</p></li>
-       <li><p><b><a href="#Relaton">Relaton</a></b>: Severity 2: <b>1</b> errors</p></li>
+       <li><p><b><a href="#Metanorma_XML_Syntax">Metanorma XML Syntax</a></b>: Severity 2: <b>1</b> error</p></li>
+       <li><p><b><a href="#Relaton">Relaton</a></b>: Severity 2: <b>1</b> error</p></li>
        </ul>
        <h2 id="Category_1">Category 1</h2>
        <table border="1">
@@ -472,7 +472,7 @@ RSpec.describe Metanorma::Utils do
       #{HTML_HDR}
       </head>
       <body><h1>./log.err.html errors</h1>
-       <ul><li><p><b><a href="#Category_3">Category 3</a></b>: Severity 1: <b>1</b> errors</p></li>
+       <ul><li><p><b><a href="#Category_3">Category 3</a></b>: Severity 1: <b>1</b> error</p></li>
        </ul>
        <h2 id="Category_3">Category 3</h2>
        <table border="1">
@@ -499,7 +499,7 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> error</p></li>
        </ul>
        <h2 id="Category_1">Category 1</h2>
       <table border="1">
@@ -526,7 +526,7 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> errors</p></li>
+      <ul><li><p><b><a href="#Category_1">Category 1</a></b>: Severity 2: <b>1</b> error</p></li>
        </ul>
        <h2 id="Category_1">Category 1</h2>
       <table border="1">
@@ -561,7 +561,7 @@ RSpec.describe Metanorma::Utils do
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
-      <ul><li><p><b><a href="#Category_2">Category 2</a></b>: Severity 2: <b>1</b> errors</p></li>
+      <ul><li><p><b><a href="#Category_2">Category 2</a></b>: Severity 2: <b>1</b> error</p></li>
       </ul>
       <h2 id="Category_2">Category 2</h2>
       <table border="1">

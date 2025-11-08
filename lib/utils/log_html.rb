@@ -35,7 +35,8 @@ module Metanorma
           m[e[:severity]] += 1
         end.compact
         s.keys.sort.map do |k|
-          "Severity #{k}: <b>#{s[k]}</b> errors"
+          error = s[k] == 1 ? "error" : "errors"
+          "Severity #{k}: <b>#{s[k]}</b> #{error}"
         end.join("; ")
       end
 
