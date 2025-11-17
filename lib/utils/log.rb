@@ -144,6 +144,7 @@ module Metanorma
 
       def xml_current_location(node)
         while !node.nil? && node["id"].nil? && node.respond_to?(:parent)
+          node.parent.nil? and break
           node = node.parent
         end
         anchor = node["anchor"]
