@@ -77,7 +77,7 @@ RSpec.describe Metanorma::Utils do
     log = Metanorma::Utils::Log.new(messages)
     log.add("FLAVOR_3", nil)
     log.add("BMX_44", "node")
-    log.add("FLAVOR_5", xml.at("//xml/a/b"))
+    log.add("FLAVOR_5", xml.at("//xml/a/b").remove)
     log.add("FLAVOR_10", xml.at("//xml/a"))
     log.add("FLAVOR_1", xml.at("//xml/a"))
     log.add("BMX_4", xml.at("//xml/a/c"))
@@ -154,76 +154,74 @@ RSpec.describe Metanorma::Utils do
 
       <li><p><b><a href="#Category_4">Category 4</a></b>: Severity 2: <b>4</b> errors</p></li>
       </ul>
-       <h2 id="Category_1">Category 1</h2>
-       <table border="1">
-       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
-       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-       <tbody>
-       <tr class="severity0">
-       <td></td><th><code>--</code></th><td>FLAVOR_3</td>
-       <td>Message 1</td><td><pre></pre></td><td>0</td></tr>
-       <tr class="severity1">
-       <td></td><th><code>node</code></th><td>BMX_44</td>
-       <td>Message 2</td><td><pre></pre></td><td>1</td></tr>
-       </tbody></table>
-       <h2 id="Category_2">Category 2</h2>
-       <table border="1">
-       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
-       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-       <tbody>
-       <tr class="severity0">
-       <td>000002</td><th><code>--</code></th><td>FLAVOR_10</td>
-       <td>Message 4</td><td><pre>&lt;a&gt;
-       &lt;b id=&quot;xyz&quot;&gt;
-       c
-       &lt;/b&gt;
-       &lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>0</td></tr>
-       <tr class="severity1">
-       <td>000002</td><th><code>--</code></th><td>FLAVOR_1</td>
-       <td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
-       <tr class="severity2">
-       <td>000003</td><th><code><a href='#{File.join('.', 'log.html')}#ghi'>ghi</a></code></th><td>FLAVOR_5</td>
-       <td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
-       c
-       &lt;/b&gt;</pre></td><td>2</td></tr>
-       <tr class="severity1">
-       <td>000006</td><th><code><a href='#{File.join('.', 'log.html')}#Löwe'>Löwe</a></code></th><td>BMX_4</td>
-       <td>Message 6</td><td><pre>&lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>1</td></tr>
-       </tbody></table>
-       <h2 id="Category_3">Category 3</h2>
-       <table border="1">
-       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
-       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-       <tbody>
-       <tr class="severity2">
-       <td></td><th><code>--</code></th><td>BMX_3</td>
-       <td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
-       <tr class="severity2">
-       <td></td><th><code>--</code></th><td>FLAVOR_50</td>
-       <td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
-       <tr class="severity2">
-       <td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th><td>FLAVOR_2</td>
-       <td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
-       </tbody></table>
-       <h2 id="Category_4">Category 4</h2>
-       <table border="1">
-       <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
-       <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
-       <tbody>
-       <tr class="severity2">
-       <td></td><th><code>??</code></th><td>FLAVOR_48</td>
-       <td>Message 7.2</td><td><pre>Line: </pre></td><td>2</td></tr>
-       <tr class="severity2">
-       <td></td><th><code>??</code></th><td>FLAVOR_46</td>
-       <td>Message 7.4</td><td><pre>Line: </pre></td><td>2</td></tr>
-       <tr class="severity2">
-       <td>000013</td><th><code>XML Line 000013</code></th><td>FLAVOR_47</td>
-       <td>Message 7.3</td><td><pre>Line: 13</pre></td><td>2</td></tr>
-       <tr class="severity2">
-       <td>1212</td><th><code>Asciidoctor Line 000012</code></th><td>FLAVOR_49</td>
-       <td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td><td>2</td></tr>
-       </tbody></table>
-       </body></html>
+      <h2 id="Category_1">Category 1</h2>
+      <table border="1">
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+      <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+      <tbody>
+      <tr class="severity0">
+      <td></td><th><code>--</code></th><td>FLAVOR_3</td>
+      <td>Message 1</td><td><pre></pre></td><td>0</td></tr>
+      <tr class="severity1">
+      <td></td><th><code>node</code></th><td>BMX_44</td>
+      <td>Message 2</td><td><pre></pre></td><td>1</td></tr>
+      </tbody></table>
+      <h2 id="Category_2">Category 2</h2>
+      <table border="1">
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+      <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+      <tbody>
+      <tr class="severity0">
+      <td>000002</td><th><code>--</code></th><td>FLAVOR_10</td>
+      <td>Message 4</td><td><pre>&lt;a&gt;
+      &lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;
+      &lt;/a&gt;</pre></td><td>0</td></tr>
+      <tr class="severity1">
+      <td>000002</td><th><code>--</code></th><td>FLAVOR_1</td>
+      <td>Message 5</td><td><pre>Context</pre></td><td>1</td></tr>
+      <tr class="severity2">
+      <td>000003</td><th><code><a href='#{File.join('.', 'log.html')}#ghi'>ghi</a></code></th><td>FLAVOR_5</td>
+      <td>Message 3</td><td><pre>&lt;b id=&quot;xyz&quot;&gt;
+      c
+      &lt;/b&gt;</pre></td><td>2</td></tr>
+      <tr class="severity1">
+      <td>000006</td><th><code><a href='#{File.join('.', 'log.html')}#Löwe'>Löwe</a></code></th><td>BMX_4</td>
+      <td>Message 6</td><td><pre>&lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;</pre></td><td>1</td></tr>
+      </tbody></table>
+      <h2 id="Category_3">Category 3</h2>
+      <table border="1">
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+      <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+      <tbody>
+      <tr class="severity2">
+      <td></td><th><code>--</code></th><td>BMX_3</td>
+      <td>Message 6.1</td><td><pre>ID: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code>--</code></th><td>FLAVOR_50</td>
+      <td>Message 6.3</td><td><pre>ID: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code><a href='#{File.join('.', 'log.html')}#B'>B</a></code></th><td>FLAVOR_2</td>
+      <td>Message 6.2</td><td><pre>ID: B</pre></td><td>2</td></tr>
+      </tbody></table>
+      <h2 id="Category_4">Category 4</h2>
+      <table border="1">
+      <thead><th width="5%">Line</th><th width="20%">ID</th><th width="10%">Error</th>
+      <th width="20%">Message</th><th width="40%">Context</th><th width="5%">Severity</th></thead>
+      <tbody>
+      <tr class="severity2">
+      <td></td><th><code>??</code></th><td>FLAVOR_48</td>
+      <td>Message 7.2</td><td><pre>Line: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td></td><th><code>??</code></th><td>FLAVOR_46</td>
+      <td>Message 7.4</td><td><pre>Line: </pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td>000013</td><th><code>XML Line 000013</code></th><td>FLAVOR_47</td>
+      <td>Message 7.3</td><td><pre>Line: 13</pre></td><td>2</td></tr>
+      <tr class="severity2">
+      <td>1212</td><th><code>Asciidoctor Line 000012</code></th><td>FLAVOR_49</td>
+      <td>XML Line 1212:40, Message 7.1</td><td><pre>Line: 12</pre></td><td>2</td></tr>
+      </tbody></table>
+      </body></html>
     OUTPUT
   end
 
