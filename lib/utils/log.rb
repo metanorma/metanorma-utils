@@ -50,7 +50,7 @@ module Metanorma
         m = add_prep(id) or return
         msg = create_entry(loc, m[:error], m[:severity], id, params)
         @log[m[:category]] << msg
-        loc = loc.nil? ? "" : "(#{current_location(loc)}): "
+        loc = loc.nil? ? "" : "(#{current_location(loc)[0]}): "
         suppress_display?(m[:category], loc, msg, display) or
           warn "#{m[:category]}: #{loc}#{msg[:error]}"
       end
