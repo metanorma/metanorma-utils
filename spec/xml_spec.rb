@@ -107,10 +107,10 @@ RSpec.describe Metanorma::Utils do
   it "detects GUID anchors" do
     expect(Metanorma::Utils
       .guid_anchor?("_78e83945-77cf-4330-b804-19ba4f387f51"))
-      .to be_equivalent_to true
+      .to be true
     expect(Metanorma::Utils
       .guid_anchor?("_78e83945-77cf-4330-b804-19ba4f387f512"))
-      .to be_equivalent_to false
+      .to be false
   end
 
   it "generates content hash" do
