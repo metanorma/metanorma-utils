@@ -52,7 +52,6 @@ RSpec.describe Metanorma::Utils do
     INPUT
     Metanorma::Utils.endash_date(a)
     expect(a.to_xml).to be_equivalent_to <<~OUTPUT
-          <?xml version="1.0"?>
       <container><a>A&#x2013;B A&#x2013;B</a><b>A&#x2013;B</b></container>
     OUTPUT
   end

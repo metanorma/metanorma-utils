@@ -5,6 +5,7 @@ module Metanorma
   module Utils
     class << self
       # Following XML requirements for NCName: https://www.w3.org/TR/xml-names/#NT-NCName
+      # rubocop:disable Layout/LineLength
       BASECHAR = "A-Za-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{FF}\u{100}-\u{131}\u{134}-\u{13E}" \
                  "\u{141}-\u{148}\u{14A}-\u{17E}\u{180}-\u{1C3}\u{1CD}-\u{1F0}\u{1F4}-\u{1F5}" \
                  "\u{1FA}-\u{217}\u{250}-\u{2A8}\u{2BB}-\u{2C1}\u{386}\u{388}-\u{38A}\u{38C}" \
@@ -73,7 +74,8 @@ module Metanorma
                         "\u{3099}\u{309A}".freeze
       EXTENDER = "\u{00B7}\u{02D0}\u{02D1}\u{0387}\u{0640}\u{0E46}\u{0EC6}\u{3005}" \
                  "\u{3031}-\u{3035}\u{309D}-\u{309E}\u{30FC}-\u{30FE}".freeze
-
+      # rubocop:enable Layout/LineLength
+      #
       # NCName specific constants - NCName is "an XML Name, minus the :"
       # NCName = (Letter | '_') (NCNameChar)*
       NCNAME_START_CHAR = "#{LETTER}_".freeze

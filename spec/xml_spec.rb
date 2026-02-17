@@ -28,13 +28,13 @@ RSpec.describe Metanorma::Utils do
     out = Metanorma::Utils.noko do |xml|
       xml << doc.blocks.first.content
     end
-    expect(out).to be_equivalent_to <<~OUTPUT
+    expect(out).to be_equivalent_to <<~OUTPUT.strip
       &lt;A&gt; 
     OUTPUT
     out = Metanorma::Utils.noko_html do |xml|
       xml << doc.blocks.first.content
     end
-    expect(out.join).to be_equivalent_to <<~OUTPUT
+    expect(out.join).to be_equivalent_to <<~OUTPUT.strip
       &lt;A&gt; 
     OUTPUT
   end
