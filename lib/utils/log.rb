@@ -172,7 +172,10 @@ module Metanorma
 
       # try to approximate input, at least for maths
       def human_readable_xml(node)
-        ret = node.dup
+        # Serialize to string first to capture current state
+        # Then parse back to get independent copy for processing
+        xml_string = node.to_xml
+        ret = Nokogiri::XML(xml_string).root
         ret.xpath(".//*[local-name() = 'stem']").each do |s|
           sub = s.at("./*[local-name() = 'asciimath'] | " \
                      "./*[local-name() = 'latexmath']")
