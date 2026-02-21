@@ -54,7 +54,7 @@ RSpec.describe Metanorma::Utils::Tempfile do
       # Note: File deletion in block form happens via finalizer
       # which may be delayed, so we just verify the file was created
       expect(path).not_to be_nil
-      expect(path).to start_with("/")
+      expect(Pathname.new(path).absolute?).to be true
     end
 
     it "supports writing and reading" do
@@ -67,8 +67,9 @@ RSpec.describe Metanorma::Utils::Tempfile do
     end
 
     it "accepts tmpdir parameter" do
-      file = Metanorma::Utils::Tempfile.new("test", "/tmp")
-      expect(file.path).to start_with("/tmp/")
+      tmpdir = Dir.tmpdir
+      file = Metanorma::Utils::Tempfile.new("test", tmpdir)
+      expect(file.path).to start_with(tmpdir)
       file.close
       file.unlink
     end
