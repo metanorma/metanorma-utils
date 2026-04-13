@@ -1,2 +1,2 @@
-gem "canon", git: "https://github.com/lutaml/canon", branch: "fix/nn-apr2026"
+gem "canon", git: "https://github.com/lutaml/canon", branch: "main"
 
