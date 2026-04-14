@@ -7,6 +7,8 @@ require "equivalent-xml"
 require "metanorma-utils"
 require "canon"
 
+Canon::Config.instance.profile = :metanorma
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -41,7 +43,7 @@ HTML_HDR = <<~HTML.freeze
   .severity1 { font-weight: bold; }
   .severity2 { }
   .severity3 { font-style: italic; color: grey; }
-   </style>
+  </style>
 HTML
 
 TBL_HDR = <<~HTML.freeze

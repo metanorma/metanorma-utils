@@ -100,7 +100,7 @@ RSpec.describe Metanorma::Utils do
       { error_id: "FLAVOR_5", location: "xyz", severity: 2,
         error: "Message 3", context: "<b id=\"xyz\">\nc\n</b>", line: "000003", anchor: nil, id: "xyz" },
       { error_id: "FLAVOR_10", location: "", severity: 0, error: "Message 4",
-        context: "<a>\n<b id=\"xyz\">\nc\n</b>\n<c id=\"abc\" anchor=\"L&#xF6;we\"/>\n</a>", line: "000002", anchor: nil, id: nil },
+        context: "<a>\n\n<c id=\"abc\" anchor=\"L&#xF6;we\"/>\n</a>", line: "000002", anchor: nil, id: nil },
       { error_id: "FLAVOR_1", location: "", severity: 1, error: "Message 5",
         context: "Context", line: "000002", anchor: nil, id: nil },
       { error_id: "BMX_4", location: "Löwe", severity: 1, error: "Message 6",
@@ -120,30 +120,34 @@ RSpec.describe Metanorma::Utils do
       { error_id: "FLAVOR_46", location: "??", severity: 2,
         error: "Message 7.4", context: "Line: ", line: "000000", anchor: nil, id: nil },
     ]
-    expect(log.display_messages).to be_equivalent_to <<~OUTPUT
+    output = <<~OUTPUT
       Category 1:
       \tBMX_44      : Message 2
       \tFLAVOR_3    : Message 1
+
       Category 2:
       \tBMX_4       : Message 6
       \tFLAVOR_1    : Message 5 :: Context
       \tFLAVOR_5    : Message 3
       \tFLAVOR_10   : Message 4
+
       Category 3:
       \tBMX_3       : Message 6.1
       \tFLAVOR_2    : Message 6.2
       \tFLAVOR_50   : Message 6.3
+
       Category 4:
       \tFLAVOR_46   : Message 7.4
       \tFLAVOR_47   : Message 7.3
       \tFLAVOR_48   : Message 7.2
       \tFLAVOR_49   : XML Line 1212:40, Message 7.1
     OUTPUT
+    expect(log.display_messages).to be_equivalent_to output.strip
     expect(File.exist?("log.err.html")).to be true
     expect(File.exist?("log.txt")).to be false
     file = File.read("log.err.html", encoding: "utf-8")
     # {File.join('.', 'log.html')}
-    expect(file).to be_equivalent_to <<~OUTPUT
+    html_output = <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
@@ -174,6 +178,7 @@ RSpec.describe Metanorma::Utils do
       <tr class="severity0">
       <td>000002</td><th><code>--</code></th><td>FLAVOR_10</td>
       <td>Message 4</td><td><pre>&lt;a&gt;
+
       &lt;c id=&quot;abc&quot; anchor=&quot;L&amp;#xF6;we&quot;/&gt;
       &lt;/a&gt;</pre></td><td>0</td></tr>
       <tr class="severity1">
@@ -223,6 +228,7 @@ RSpec.describe Metanorma::Utils do
       </tbody></table>
       </body></html>
     OUTPUT
+    expect(file).to be_html5_equivalent_to html_output.strip
   end
 
   it "log non-existent error" do

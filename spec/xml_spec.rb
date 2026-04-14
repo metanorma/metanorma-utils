@@ -28,15 +28,14 @@ RSpec.describe Metanorma::Utils do
     out = Metanorma::Utils.noko do |xml|
       xml << doc.blocks.first.content
     end
-    expect(out).to be_equivalent_to <<~OUTPUT
+    output = <<~OUTPUT
       &lt;A&gt; 
     OUTPUT
+    expect(out).to be_equivalent_to output.strip
     out = Metanorma::Utils.noko_html do |xml|
       xml << doc.blocks.first.content
     end
-    expect(out.join).to be_equivalent_to <<~OUTPUT
-      &lt;A&gt; 
-    OUTPUT
+    expect(out.join).to be_equivalent_to output.strip
   end
 
   it "wraps an Asciidoctor node in paragraph" do
@@ -107,10 +106,10 @@ RSpec.describe Metanorma::Utils do
   it "detects GUID anchors" do
     expect(Metanorma::Utils
       .guid_anchor?("_78e83945-77cf-4330-b804-19ba4f387f51"))
-      .to be_equivalent_to true
+      .to eq true
     expect(Metanorma::Utils
       .guid_anchor?("_78e83945-77cf-4330-b804-19ba4f387f512"))
-      .to be_equivalent_to false
+      .to eq false
   end
 
   it "generates content hash" do
