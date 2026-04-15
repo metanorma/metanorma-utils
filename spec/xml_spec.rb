@@ -19,7 +19,7 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "generates XML snippets from Asciidoctor" do
-    input = <<~'INPUT'
+    input = <<~INPUT
       <A> &#150;
     INPUT
 
@@ -39,10 +39,10 @@ RSpec.describe Metanorma::Utils do
   end
 
   it "wraps an Asciidoctor node in paragraph" do
-    input = <<~'INPUT'
+    input = <<~INPUT
       NOTE: XYZ
     INPUT
-    input2 = <<~'INPUT'
+    input2 = <<~INPUT
       ====
       A
 
@@ -142,11 +142,11 @@ RSpec.describe Metanorma::Utils do
     xml.at("//c").add_first_child("<x>C</x>")
     expect(xml.root.to_xml)
       .to be_equivalent_to <<~OUTPUT
-       <metanorma>
-       <a><x>A</x></a>
-       <b><x>B</x>C</b>
-       <c><x>C</x><d/></c>
-       </metanorma>
-    OUTPUT
+        <metanorma>
+        <a><x>A</x></a>
+        <b><x>B</x>C</b>
+        <c><x>C</x><d/></c>
+        </metanorma>
+      OUTPUT
   end
 end

@@ -11,6 +11,10 @@ RSpec.describe Metanorma::Utils do
       .to eq "ABC Def GHI"
     expect(Metanorma::Utils.strict_capitalize_first("aBC def gHI"))
       .to eq "ABC def gHI"
+    expect(Metanorma::Utils.strict_capitalize_phrase("   ABC def gHI   "))
+      .to eq "   ABC Def GHI   "
+    expect(Metanorma::Utils.strict_capitalize_first("   aBC def gHI   "))
+      .to eq "   ABC def gHI   "
   end
 
   it "converts OS-specific external path" do
@@ -63,10 +67,12 @@ RSpec.describe Metanorma::Utils do
     a = Metanorma::Utils.set_nested_value(a, ["X1"], 9)
     a = Metanorma::Utils.set_nested_value(a, ["X2"], [3])
     a = Metanorma::Utils.set_nested_value(a, ["X3"], { "a" => "b" })
-    expect(a).to be_equivalent_to({"X"=>"x", "X1"=>9, "X2"=>[3], "X3"=>{"a"=>"b"}})
+    expect(a).to be_equivalent_to({ "X" => "x", "X1" => 9, "X2" => [3],
+                                    "X3" => { "a" => "b" } })
     a = Metanorma::Utils.set_nested_value(a, ["X2"], 4)
     a = Metanorma::Utils.set_nested_value(a, ["X1"], 4)
-    expect(a).to be_equivalent_to({"X"=>"x", "X1"=>[9, 4], "X2"=>[3, 4], "X3"=>{"a"=>"b"}})
+    expect(a).to be_equivalent_to({ "X" => "x", "X1" => [9, 4], "X2" => [3, 4],
+                                    "X3" => { "a" => "b" } })
     a = Metanorma::Utils.set_nested_value(a, ["X2", "A"], 5)
     a = Metanorma::Utils.set_nested_value(a, ["X2a"], [])
     a = Metanorma::Utils.set_nested_value(a, ["X2a", "A"], 6)
@@ -75,7 +81,12 @@ RSpec.describe Metanorma::Utils do
     a = Metanorma::Utils.set_nested_value(a, ["X3", "a"], 8)
     a = Metanorma::Utils.set_nested_value(a, ["X1", "a"], 11)
     a = Metanorma::Utils.set_nested_value(a, ["X", "a"], 12)
-    expect(a).to be_equivalent_to({"X"=>["x", {"a"=>12}], "X1"=>[9, 4, {"a"=>11}], "X2"=>[3, 4, {"A"=>5}], "X3"=>{"a"=>["b", 8], "A"=>7}, "X2a"=>[{"A"=>6}], "X4"=>{"A"=>10}})
+    expect(a).to be_equivalent_to({ "X" => ["x", { "a" => 12 }],
+                                    "X1" => [9, 4, { "a" => 11 }],
+                                    "X2" => [3, 4, { "A" => 5 }],
+                                    "X3" => { "a" => ["b", 8], "A" => 7 },
+                                    "X2a" => [{ "A" => 6 }],
+                                    "X4" => { "A" => 10 } })
   end
 
   it "maps languages to scripts" do
@@ -177,7 +188,7 @@ RSpec.describe Metanorma::Utils do
 
   it "processes XML attributes" do
     ret = Metanorma::Utils.attr_code({ a: 1, b: "&#x65;", c: nil })
-    expect(ret).to be_equivalent_to({:a=>1, :b=>"e"})
+    expect(ret).to be_equivalent_to({ a: 1, b: "e" })
   end
 
   it "breaks up long strings" do
@@ -306,7 +317,7 @@ RSpec.describe Metanorma::Utils do
       true, true, true, false, false, # comment: 51
       false, false, false, false, # no middoc attr: 55
       false, false, true, true, false, # middoc attr: 60
-      false, true, true, true, false, false, # comment delim: 66
+      false, true, true, true, false, false # comment delim: 66
     ]
     p = Metanorma::Utils::LineStatus.new
     pass_status.each_with_index do |s, i|

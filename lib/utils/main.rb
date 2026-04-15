@@ -83,20 +83,27 @@ module Metanorma
         hash
       end
 
+      def trim_split(str)
+        m = /^(\s*)(?=\S)(.+)(?<=\S)(\s*)$/.match(str)
+        [m[1], m[2], m[3]]
+      end
+
       def strict_capitalize_phrase(str)
-        str.split(/ /).map do |w|
+        a, body, b = trim_split(str)
+        a + body.split(/ /).map do |w|
           letters = w.chars
           letters.first.upcase!
           letters.join
-        end.join(" ")
+        end.join(" ") + b
       end
 
       def strict_capitalize_first(str)
-        str.split(/ /).each_with_index.map do |w, i|
+        a, body, b = trim_split(str)
+        a + body.split(/ /).each_with_index.map do |w, i|
           letters = w.chars
           letters.first.upcase! if i.zero?
           letters.join
-        end.join(" ")
+        end.join(" ") + b
       end
 
       def external_path(path)
