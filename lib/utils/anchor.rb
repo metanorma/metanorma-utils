@@ -119,10 +119,12 @@ module Metanorma
       def anchor_attributes(presxml: false)
         ret = [%w(annotation from), %w(annotation to), %w(callout target),
                %w(xref to), %w(eref bibitemid), %w(citation bibitemid),
+               %w(origin bibitemid),
                %w(xref target), %w(label for), %w(location target),
                %w(index to), %w(termsource bibitemid), %w(admonition target)]
         ret1 = [%w(fn target), %w(semx source), %w(fmt-title source),
                 %w(fmt-xref to), %w(fmt-xref target), %w(fmt-eref bibitemid),
+                %w(fmt-origin bibitemid),
                 %w(fmt-xref-label container), %w(fmt-fn-body target),
                 %w(fmt-annotation-body from), %w(fmt-annotation-body to),
                 %w(fmt-annotation-start source), %w(fmt-annotation-start end),
