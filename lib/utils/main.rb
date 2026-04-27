@@ -85,6 +85,7 @@ module Metanorma
 
       def trim_split(str)
         m = /^(\s*)(?=\S)(.+)(?<=\S)(\s*)$/.match(str)
+        m ||= ["", "", "", ""]
         [m[1], m[2], m[3]]
       end
 
@@ -160,11 +161,11 @@ nopunct = LONGSTR_NOPUNCT)
       STR_BREAKUP_RE = %r{
        (?<=[=_—–\u2009→?+;]) | # break after any of these
        (?<=[,.:])(?!\d) | # break on punct only if not preceding digit
-       (?<=[>])(?![>]) | # > not >->
-       (?<=[\]])(?![\]]) | # ] not ]-]
+       (?<=>)(?!>) | # > not >->
+       (?<=\])(?!\]) | # ] not ]-]
        (?<=//) | # //
-       (?<=[/])(?![/]) | # / not /-/
-       (?<![<])(?=[<]) | # < not <-<
+       (?<=/)(?!/) | # / not /-/
+       (?<!<)(?=<) | # < not <-<
        (?<=\p{L})(?=[(\{\[]\p{L}) # letter and bracket, followed by letter
       }x.freeze
 

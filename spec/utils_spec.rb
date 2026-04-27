@@ -15,6 +15,10 @@ RSpec.describe Metanorma::Utils do
       .to eq "   ABC Def GHI   "
     expect(Metanorma::Utils.strict_capitalize_first("   aBC def gHI   "))
       .to eq "   ABC def gHI   "
+    expect(Metanorma::Utils.strict_capitalize_phrase(""))
+      .to eq ""
+    expect(Metanorma::Utils.strict_capitalize_first(""))
+      .to eq ""
   end
 
   it "converts OS-specific external path" do
