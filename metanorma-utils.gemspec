@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "concurrent-ruby"
   spec.add_dependency "csv"
   spec.add_dependency "htmlentities", "~> 4.3.4"
+  spec.add_dependency "logger"
   spec.add_dependency "nokogiri", ">= 1.11"
   spec.add_dependency "sterile", "~> 1.0.14"
   spec.add_dependency "uuidtools"
