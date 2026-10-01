@@ -9,6 +9,12 @@ require_relative "cjk"
 
 module Metanorma
   module Utils
+    # One shared decoder: instantiating HTMLEntities builds a full entity
+    # table per instance, and these helpers run per attribute value / per
+    # text node in document-scale pipelines — hundreds of thousands of
+    # live decoders were observed retained in a single metanorma compile.
+    HTML_ENTITIES = HTMLEntities.new
+
     class << self
       # , " => ," : CSV definition does not deal with space followed by quote
       # at start of field
@@ -38,7 +44,7 @@ module Metanorma
 
       # TODO needs internationalisation of quote
       def smartformat(text)
-        ret = HTMLEntities.new.decode(
+        ret = HTML_ENTITIES.decode(
           text.gsub(/ --? /, "&#8201;&#8212;&#8201;")
           .gsub("--", "&#8212;"),
         )
@@ -47,7 +53,7 @@ module Metanorma
         ret = ret.smart_format
         ret = ret.gsub(%r{(#{CJK})\u200a}o, "\\1")
           .gsub(%r{\u200a(#{CJK})}o, "\\1")
-        HTMLEntities.new.encode(ret, :basic)
+        HTML_ENTITIES.encode(ret, :basic)
       end
 
       def endash_date(elem)

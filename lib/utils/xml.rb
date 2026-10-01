@@ -32,7 +32,7 @@ module Metanorma
     class << self
       def attr_code(attributes)
         attributes.compact.transform_values do |v|
-          v.is_a?(String) ? HTMLEntities.new.decode(v) : v
+          v.is_a?(String) ? HTML_ENTITIES.decode(v) : v
         end
       end
 
@@ -97,7 +97,7 @@ module Metanorma
       end
 
       def numeric_escapes(xml)
-        c = HTMLEntities.new
+        c = HTML_ENTITIES
         xml.split(/(&[^ \r\n\t#&;]+;)/).map do |t|
           if /^(&[^ \t\r\n#;]+;)/.match?(t)
             c.encode(c.decode(t), :hexadecimal)
