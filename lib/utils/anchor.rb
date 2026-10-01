@@ -105,7 +105,7 @@ module Metanorma
       def to_ncname_prep(name, asciionly)
         name = name&.to_s
         name.nil? and name = ""
-        asciionly and name = HTMLEntities.new.encode(name,
+        asciionly and name = HTML_ENTITIES.encode(name,
                                                      :basic, :hexadecimal)
         [name, name.nil? || name.empty? || name.match?(SAFE_NCNAME_REGEXP)]
       end
