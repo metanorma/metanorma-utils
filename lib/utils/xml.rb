@@ -30,6 +30,11 @@ module Metanorma
     HERE
 
     class << self
+      # The parsed NOKOHEAD scaffold, shared by every noko fragment.
+      def noko_template
+        @noko_template ||= ::Nokogiri::XML.parse(NOKOHEAD)
+      end
+
       def attr_code(attributes)
         attributes.compact.transform_values do |v|
           v.is_a?(String) ? HTML_ENTITIES.decode(v) : v
@@ -39,8 +44,15 @@ module Metanorma
       # block for processing XML document fragments as XHTML,
       # to allow for HTMLentities
       # Unescape special chars used in Asciidoctor substitution processing
+      # The template document is parsed once per process: noko runs for
+      # every inline element and block a converter emits (a metanorma
+      # plateau compile measured 73k calls), and re-parsing NOKOHEAD
+      # minted a fresh HTML-skeleton Document per call — 75k retained
+      # documents with their node caches, a top memory consumer of
+      # large compiles. Fragments off the shared document are
+      # independent trees; conversion is single-threaded.
       def noko(_script = "Latn", &block)
-        fragment = ::Nokogiri::XML.parse(NOKOHEAD).fragment("")
+        fragment = noko_template.fragment("")
         ::Nokogiri::XML::Builder.with fragment, &block
         fragment
           .to_xml(encoding: "UTF-8", indent: 0,
@@ -74,7 +86,7 @@ module Metanorma
       end
 
       def noko_html(&block)
-        doc = ::Nokogiri::XML.parse(NOKOHEAD)
+        doc = noko_template.dup
         fragment = doc.fragment("")
         ::Nokogiri::XML::Builder.with fragment, &block
         fragment.to_xml(encoding: "UTF-8", indent: 0,
