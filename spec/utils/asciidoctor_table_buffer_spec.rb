@@ -72,4 +72,31 @@ RSpec.describe Metanorma::Utils::AsciidoctorTableBuffer do
     expect(patched).to include("<td class=\"tableblock halign-left valign-top\"><p class=\"tableblock\">multi\nline</p></td>")
     expect(patched).to include("<td class=\"tableblock halign-left valign-top\"><p class=\"tableblock\">B1|</p></td>")
   end
+
+  describe "the stand-down detection" do
+    let(:parser_path) do
+      ::Asciidoctor::Parser.method(:parse_table).source_location.to_a.first
+    end
+
+    it "stands down when upstream appends in place (append_to_buffer)" do
+      described_class.instance_variable_set(:@applied, false)
+      allow(File).to receive(:read).and_call_original
+      allow(File).to receive(:read).with(parser_path)
+        .and_return("parser_ctx.append_to_buffer %(#{line}#{LF})")
+      expect(described_class.apply!).to be false
+    end
+
+    it "stands down when upstream drops the per-line buffer rebuild" do
+      described_class.instance_variable_set(:@applied, false)
+      allow(File).to receive(:read).and_call_original
+      allow(File).to receive(:read).with(parser_path)
+        .and_return("parser_ctx.buffer << line")
+      expect(described_class.apply!).to be false
+    end
+
+    it "applies while the quadratic rebuild remains" do
+      described_class.instance_variable_set(:@applied, false)
+      expect(described_class.apply!).to be true
+    end
+  end
 end

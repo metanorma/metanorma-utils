@@ -14,7 +14,16 @@ require "asciidoctor"
 # corrected Asciidoctor::Parser.parse_table that appends in place via
 # ParserContext#append_to_buffer, and reopens ParserContext so that the
 # skip_past_* helpers append in place as well. If a future asciidoctor
-# release already appends in place, the prepend stands down.
+# release fixes the rebuild itself - in place, or the Array-then-join
+# shape the maintainers have stated they would accept upstream - the
+# prepend stands down.
+#
+# Upstream cannot adopt in-place string mutation (frozen-string
+# literals are enforced in the asciidoctor sources, and mutation is
+# incompatible with Opal); their stated solution is an array that is
+# later concatenated. In-place mutation is kept here because
+# metanorma-utils is server-side Ruby only, and the buffer starts each
+# cell as a mutable copy of at most one line.
 module Asciidoctor
   module TableCellBufferPatch
   def parse_table(table_reader, parent, attributes)
@@ -187,8 +196,19 @@ module Metanorma
           parser_file = ::Asciidoctor::Parser
             .method(:parse_table).source_location.to_a.first
           return false unless parser_file && File.file?(parser_file)
-          # stand down once asciidoctor appends in place itself
-          return false if File.read(parser_file).include?("append_to_buffer")
+          # Stand down once asciidoctor fixes the quadratic rebuild
+          # itself, in either shape: appending in place
+          # (append_to_buffer), or accumulating lines in an Array
+          # joined at close - the shape the asciidoctor maintainers
+          # have stated is acceptable upstream (string mutation is
+          # barred there by frozen-string literals and Opal
+          # compatibility; see the comment thread of asciidoctor PR
+          # #4879). Detecting both matters: this patch prepends a whole
+          # copy of parse_table, so shadowing an upstream fix with a
+          # stale copy would silently revert their behavior.
+          parser_src = File.read(parser_file)
+          return false if parser_src.include?("append_to_buffer")
+          return false unless parser_src.include?("parser_ctx.buffer = %(#{parser_ctx.buffer}")
 
           ::Asciidoctor::Parser.singleton_class
             .prepend(::Asciidoctor::TableCellBufferPatch)
