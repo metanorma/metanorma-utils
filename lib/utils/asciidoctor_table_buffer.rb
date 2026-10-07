@@ -11,20 +11,67 @@ require "asciidoctor"
 # and exceed modest memory caps before the table finishes parsing.
 #
 # The patch below carries the fix inside metanorma-utils: it prepends a
-# corrected Asciidoctor::Parser.parse_table that appends in place via
-# ParserContext#append_to_buffer, and reopens ParserContext so that the
-# skip_past_* helpers append in place as well. If a future asciidoctor
-# release fixes the rebuild itself - in place, or the Array-then-join
-# shape the maintainers have stated they would accept upstream - the
-# prepend stands down.
+# corrected Asciidoctor::Parser.parse_table whose appends go through
+# ParserContext#append_to_buffer, and prepends ParserContext methods that
+# accumulate the cell as an Array of segments joined once at close (and
+# whenever the CSV quote check needs the whole record). No String owned
+# by the buffer is ever mutated, so no frozen-string workaround is
+# needed, and the per-line buffer-sized String churn the GC chases is
+# gone.
 #
-# Upstream cannot adopt in-place string mutation (frozen-string
-# literals are enforced in the asciidoctor sources, and mutation is
-# incompatible with Opal); their stated solution is an array that is
-# later concatenated. In-place mutation is kept here because
-# metanorma-utils is server-side Ruby only, and the buffer starts each
-# cell as a mutable copy of at most one line.
+# This is also the shape the asciidoctor maintainers have stated they
+# would accept upstream: in-place string mutation is barred there by
+# frozen-string literals and Opal compatibility, and their stated
+# solution is "an array that is later concatenated" (the comment thread
+# of asciidoctor PR #4879). An upstream fix of either stated shape stands
+# the prepend down (see the disarm check at the end of this file).
 module Asciidoctor
+  # Replaces the buffer-mutating ParserContext methods; the two stock
+  # readers of the buffer (the CSV quote check and close_cell) drain the
+  # pending segments into the materialized buffer and delegate upward.
+  module TableCellBufferParserContextPatch
+    # Appends the String to the buffer of the currently open cell as a
+    # pending segment; amortized O(1) per accumulated line.
+    def append_to_buffer(str)
+      (@buffer_segments ||= []) << str
+      nil
+    end
+
+    def skip_past_delimiter(pre)
+      (@buffer_segments ||= []) << pre << @delimiter
+      nil
+    end
+
+    def skip_past_escaped_delimiter(pre)
+      (@buffer_segments ||= []) << pre.chop << @delimiter
+      nil
+    end
+
+    def buffer_has_unclosed_quotes?(append = nil, q = '"')
+      drain_buffer_segments
+      super
+    end
+
+    def close_cell(eol = false)
+      drain_buffer_segments
+      super
+    end
+
+    private
+
+    # Materializes the pending segments onto the buffer String the stock
+    # methods read. Cost is proportional to the pending segments only;
+    # close_cell drains once per cell, and the quote check drains at most
+    # once per check - the same order as the stock check's own copy of
+    # the full record ((@buffer + append).strip).
+    def drain_buffer_segments
+      (@buffer_segments ||= []).empty? and return
+      @buffer = @buffer + @buffer_segments.join
+      @buffer_segments.clear
+      nil
+    end
+  end
+
   module TableCellBufferPatch
   def parse_table(table_reader, parent, attributes)
     table = Table.new(parent, attributes)
@@ -159,28 +206,7 @@ module Asciidoctor
 
   class Table
     class ParserContext
-      # Appends the String to the buffer of the currently open cell.
-      # Appending in place avoids allocating a new String the size of the
-      # whole buffer for every accumulated line. The buffer may be frozen
-      # when it was reset (Asciidoctor runs with frozen string literals),
-      # in which case it is first replaced with a mutable copy.
-      def append_to_buffer(str)
-        @buffer = +@buffer if @buffer.frozen?
-        @buffer << str
-        nil
-      end
-
-      def skip_past_delimiter(pre)
-        @buffer = +@buffer if @buffer.frozen?
-        @buffer << pre << @delimiter
-        nil
-      end
-
-      def skip_past_escaped_delimiter(pre)
-        @buffer = +@buffer if @buffer.frozen?
-        @buffer << pre.chop << @delimiter
-        nil
-      end
+      prepend TableCellBufferParserContextPatch
     end
   end
 end
@@ -188,13 +214,18 @@ end
 module Metanorma
   module Utils
     module AsciidoctorTableBuffer
+      # Resolved once, before the prepend: once our parse_table is in
+      # place, Parser.method(:parse_table) resolves to the prepended copy
+      # and its source_location points at this file, not asciidoctor's.
+      PARSER_FILE = ::Asciidoctor::Parser
+        .method(:parse_table).source_location.to_a.first
+
       class << self
         def apply!
           return false unless defined?(::Asciidoctor::VERSION)
           return true if applied?
 
-          parser_file = ::Asciidoctor::Parser
-            .method(:parse_table).source_location.to_a.first
+          parser_file = PARSER_FILE
           return false unless parser_file && File.file?(parser_file)
           # Stand down once asciidoctor fixes the quadratic rebuild
           # itself, in either shape: appending in place
@@ -208,10 +239,12 @@ module Metanorma
           # stale copy would silently revert their behavior.
           parser_src = File.read(parser_file)
           return false if parser_src.include?("append_to_buffer")
-          return false unless parser_src.include?("parser_ctx.buffer = %(#{parser_ctx.buffer}")
+          return false unless parser_src.include?('parser_ctx.buffer = %(#{parser_ctx.buffer')
 
           ::Asciidoctor::Parser.singleton_class
             .prepend(::Asciidoctor::TableCellBufferPatch)
+          ::Asciidoctor::Table::ParserContext
+            .prepend(::Asciidoctor::TableCellBufferParserContextPatch)
           @applied = true
         end
 

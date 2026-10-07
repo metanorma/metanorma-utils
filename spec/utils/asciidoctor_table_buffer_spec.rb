@@ -5,11 +5,16 @@ RSpec.describe Metanorma::Utils::AsciidoctorTableBuffer do
     expect(described_class.applied?).to be true
   end
 
-  it "adds ParserContext#append_to_buffer and keeps the skip helpers" do
+  it "prepends ParserContext#append_to_buffer and the skip helpers" do
     ctx = Asciidoctor::Table::ParserContext.instance_method(:append_to_buffer)
-    expect(ctx.owner).to eq Asciidoctor::Table::ParserContext
+    expect(ctx.owner).to eq Asciidoctor::TableCellBufferParserContextPatch
     expect(Asciidoctor::Table::ParserContext.instance_method(:skip_past_delimiter).owner)
-      .to eq Asciidoctor::Table::ParserContext
+      .to eq Asciidoctor::TableCellBufferParserContextPatch
+    # the stock readers drain the segments and delegate upward
+    expect(Asciidoctor::Table::ParserContext.instance_method(:close_cell).owner)
+      .to eq Asciidoctor::TableCellBufferParserContextPatch
+    expect(Asciidoctor::Table::ParserContext.instance_method(:buffer_has_unclosed_quotes?).owner)
+      .to eq Asciidoctor::TableCellBufferParserContextPatch
   end
 
   it "accumulates the content of a psv cell that spans multiple lines" do
@@ -59,6 +64,22 @@ RSpec.describe Metanorma::Utils::AsciidoctorTableBuffer do
     expect(table.rows.body[0][1].text).to eq "B1|"
   end
 
+  it "keeps cells intact when the csv quote check drains the segments mid-cell" do
+    input = <<~'ADOC'
+      [format=csv]
+      |===
+      "multi
+      line",b
+      c,d
+      |===
+    ADOC
+    table = Asciidoctor.load(input, standalone: false).blocks[0]
+    expect(table.rows.body[0][0].text).to eq "multi\nline"
+    expect(table.rows.body[0][1].text).to eq "b"
+    expect(table.rows.body[1][0].text).to eq "c"
+    expect(table.rows.body[1][1].text).to eq "d"
+  end
+
   it "renders the same html as the stock parser" do
     input = <<~'ADOC'
       [%header,cols="1,1"]
@@ -74,15 +95,13 @@ RSpec.describe Metanorma::Utils::AsciidoctorTableBuffer do
   end
 
   describe "the stand-down detection" do
-    let(:parser_path) do
-      ::Asciidoctor::Parser.method(:parse_table).source_location.to_a.first
-    end
+    let(:parser_path) { described_class::PARSER_FILE }
 
     it "stands down when upstream appends in place (append_to_buffer)" do
       described_class.instance_variable_set(:@applied, false)
       allow(File).to receive(:read).and_call_original
       allow(File).to receive(:read).with(parser_path)
-        .and_return("parser_ctx.append_to_buffer %(#{line}#{LF})")
+        .and_return('parser_ctx.append_to_buffer %(#{line}#{LF})')
       expect(described_class.apply!).to be false
     end
 
