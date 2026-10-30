@@ -86,8 +86,10 @@ module Metanorma
       end
 
       def noko_html(&block)
-        doc = noko_template.dup
-        fragment = doc.fragment("")
+        # Fragments off the shared template are independent trees, like in
+        # #noko: duplicating the whole scaffold document per call buys
+        # nothing and copies every node of it.
+        fragment = noko_template.fragment("")
         ::Nokogiri::XML::Builder.with fragment, &block
         fragment.to_xml(encoding: "UTF-8", indent: 0,
                         save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
