@@ -38,6 +38,18 @@ RSpec.describe Metanorma::Utils do
     expect(out.join).to be_equivalent_to output.strip
   end
 
+  it "keeps noko_html fragments independent of the shared template" do
+    template_children = Metanorma::Utils.noko_template.children.clone
+
+    first = Metanorma::Utils.noko_html { |xml| xml.p "first" }
+    second = Metanorma::Utils.noko_html { |xml| xml.p "second" }
+
+    expect(first.join).to be_equivalent_to "<p>first</p>"
+    expect(second.join).to be_equivalent_to "<p>second</p>"
+    expect(Metanorma::Utils.noko_template.children.map(&:to_s))
+      .to eq(template_children.map(&:to_s))
+  end
+
   it "wraps an Asciidoctor node in paragraph" do
     input = <<~INPUT
       NOTE: XYZ
