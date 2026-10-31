@@ -91,8 +91,8 @@ RSpec.describe Metanorma::Utils do
     log.mapid("xyz", "abc")
     log.mapid("abc", "ghi")
     log.write("log.txt")
-    expect(log.abort_messages).to be_equivalent_to ["Message 1", "Message 4"]
-    expect(log.messages).to be_equivalent_to [
+    expect(log.abort_messages).to eq ["Message 1", "Message 4"]
+    expect(log.messages).to eq [
       { error_id: "FLAVOR_3", location: "", severity: 0, error: "Message 1",
         context: "", line: "000000", anchor: nil, id: nil },
       { error_id: "BMX_44", location: "node", severity: 1,
@@ -142,7 +142,7 @@ RSpec.describe Metanorma::Utils do
       \tFLAVOR_48   : Message 7.2
       \tFLAVOR_49   : XML Line 1212:40, Message 7.1
     OUTPUT
-    expect(log.display_messages).to be_equivalent_to output.strip
+    expect(log.display_messages).to be_xml_equivalent_to output.strip
     expect(File.exist?("log.err.html")).to be true
     expect(File.exist?("log.txt")).to be false
     file = File.read("log.err.html", encoding: "utf-8")
@@ -256,7 +256,7 @@ RSpec.describe Metanorma::Utils do
       end.not_to raise_error(SystemExit)
     rescue SystemExit, RuntimeError
     end
-    expect(log.messages).to be_equivalent_to [
+    expect(log.messages).to eq [
       { error_id: "A", location: "", severity: 2, error: "Message 1",
         context: "", line: "000000", anchor: nil, id: nil },
       { error_id: "B", location: "", severity: 1, error: "Message 2",
@@ -314,13 +314,13 @@ RSpec.describe Metanorma::Utils do
     FileUtils.rm_f("log.err.html")
     expect { log.add("A", nil) }
       .to output("Category 1: A  B \n").to_stderr
-    expect(log.messages).to be_equivalent_to [
+    expect(log.messages).to eq [
       { error_id: "A", location: "", severity: 2, error: "A  B ", context: "",
         line: "000000", anchor: nil, id: nil },
     ]
     log.write("log.txt")
     file = File.read("log.err.html", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
+    expect(file).to be_xml_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
@@ -343,13 +343,13 @@ RSpec.describe Metanorma::Utils do
     FileUtils.rm_f("log.err.html")
     expect { log.add("A", nil, display: true, params: ["foo", "bar"]) }
       .to output("Category 1: A foo B bar\n").to_stderr
-    expect(log.messages).to be_equivalent_to [
+    expect(log.messages).to eq [
       { error_id: "A", location: "", severity: 2, error: "A foo B bar",
         context: "", line: "000000", anchor: nil, id: nil },
     ]
     log.write("log.txt")
     file = File.read("log.err.html", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
+    expect(file).to be_xml_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
@@ -391,7 +391,7 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
+    expect(file).to be_xml_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head>
@@ -471,7 +471,7 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
+    expect(file).to be_xml_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head>
@@ -499,7 +499,7 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
+    expect(file).to be_xml_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
@@ -526,7 +526,7 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
+    expect(file).to be_xml_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>
@@ -561,7 +561,7 @@ RSpec.describe Metanorma::Utils do
     log.write("log.txt")
     expect(File.exist?("log.err.html")).to be true
     file = File.read("log.err.html", encoding: "utf-8")
-    expect(file).to be_equivalent_to <<~OUTPUT
+    expect(file).to be_xml_equivalent_to <<~OUTPUT
       <html><head><title>./log.err.html errors</title>
       #{HTML_HDR}
       </head><body><h1>./log.err.html errors</h1>

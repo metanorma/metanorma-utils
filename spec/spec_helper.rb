@@ -3,7 +3,48 @@ SimpleCov.start do
   add_filter "/spec/"
 end
 require "rspec/matchers"
-require "equivalent-xml"
+require "canon/rspec_matchers"
+require "nokogiri"
+
+# metanorma-utils sits below isodoc in the stack, so isodoc's
+# canon_html_input_guard cannot be required here. Mirror its XML
+# fragment wrapping: canon's strict parser rejects multi-root
+# fragments, so wrap both sides in a shared synthetic root.
+module Metanorma
+  module Utils
+    module CanonXmlFragGuard
+      ROOT = "canon-xml-frag-root"
+
+      def compute_equivalent(target)
+        if @format == :xml
+          @expected = wrap(@expected)
+          target = wrap(target)
+        end
+        super(target)
+      end
+
+      private
+
+      def wrap(value)
+        return value unless value.is_a?(String)
+        return value if value.include?(ROOT)
+        wrapped = "<#{ROOT}>#{value}</#{ROOT}>"
+        begin
+          Canon::XmlParsing.moxml_context.parse(wrapped, readonly: true, strict: true)
+          wrapped
+        rescue StandardError
+          begin
+            Nokogiri::XML(wrapped).to_xml
+          rescue StandardError
+            wrapped
+          end
+        end
+      end
+    end
+  end
+end
+Canon::RSpecMatchers::SerializationMatcher
+  .prepend(Metanorma::Utils::CanonXmlFragGuard)
 require "metanorma-utils"
 require "canon"
 
