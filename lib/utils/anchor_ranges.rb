@@ -87,22 +87,31 @@ module Metanorma
       # @return [String, nil] The anchor attribute of the next non-descendant node
       def find_next_non_descendant_anchor(nodes, current_index)
         current_node = nodes[current_index]
-        current_path = current_node.path
 
         # Look through subsequent nodes
         ((current_index + 1)...nodes.length).each do |i|
           next_node = nodes[i]
-          next_path = next_node.path
 
-          # Check if next_node is a descendant of current_node
-          # A node is a descendant if its path starts with the current path
-          # followed by a path separator
-          unless next_path.start_with?("#{current_path}/")
+          # Check if next_node is a descendant of current_node. A path
+          # prefix comparison would construct every node's libxml path
+          # string (a measured hot spot on large documents); the parent
+          # walk answers the same question without building strings.
+          unless node_is_descendant?(next_node, current_node)
             return next_node["anchor"]
           end
         end
 
         nil # No non-descendant node found
+      end
+
+      def node_is_descendant?(node, ancestor)
+        parent = node.parent
+        while parent && parent.element?
+          return true if parent == ancestor
+
+          parent = parent.parent
+        end
+        false
       end
 
       def build_anchor_to_ord
