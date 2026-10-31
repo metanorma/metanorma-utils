@@ -31,11 +31,11 @@ RSpec.describe Metanorma::Utils do
     output = <<~OUTPUT
       &lt;A&gt; 
     OUTPUT
-    expect(out).to be_equivalent_to output.strip
+    expect(out).to be_xml_equivalent_to output.strip
     out = Metanorma::Utils.noko_html do |xml|
       xml << doc.blocks.first.content
     end
-    expect(out.join).to be_equivalent_to output.strip
+    expect(out.join).to be_xml_equivalent_to output.strip
   end
 
   it "keeps noko_html fragments independent of the shared template" do
@@ -44,8 +44,8 @@ RSpec.describe Metanorma::Utils do
     first = Metanorma::Utils.noko_html { |xml| xml.p "first" }
     second = Metanorma::Utils.noko_html { |xml| xml.p "second" }
 
-    expect(first.join).to be_equivalent_to "<p>first</p>"
-    expect(second.join).to be_equivalent_to "<p>second</p>"
+    expect(first.join).to be_xml_equivalent_to "<p>first</p>"
+    expect(second.join).to be_xml_equivalent_to "<p>second</p>"
     expect(Metanorma::Utils.noko_template.children.map(&:to_s))
       .to eq(template_children.map(&:to_s))
   end
@@ -70,49 +70,49 @@ RSpec.describe Metanorma::Utils do
     out = Metanorma::Utils.noko do |xml|
       Metanorma::Utils.wrap_in_para(doc.blocks.first, xml)
     end
-    expect(out).to be_equivalent_to <<~OUTPUT
+    expect(out).to be_xml_equivalent_to <<~OUTPUT
       <p>XYZ</p>
     OUTPUT
     out = Metanorma::Utils.noko do |xml|
       Metanorma::Utils.wrap_in_para(doc2.blocks.first, xml)
     end
-    expect(out).to be_equivalent_to <<~OUTPUT
+    expect(out).to be_xml_equivalent_to <<~OUTPUT
       <div class="paragraph"><p>A</p></div><div class="paragraph"><p>B</p></div>
     OUTPUT
   end
 
   it "deals with eoln in different scripts" do
     input = %w(A <em>B</em> C)
-    expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
+    expect(Metanorma::Utils.line_sanitise(input)).to eq [
       "A ", "<em>B</em> ", "C"
     ]
     input = %w(す <em>る</em> 場)
-    expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
+    expect(Metanorma::Utils.line_sanitise(input)).to eq [
       "す", "<em>る</em>", "場"
     ]
     input = ["す", "<em>る</em>", "場", ""]
-    expect(Metanorma::Utils.line_sanitise(input)).to be_equivalent_to [
+    expect(Metanorma::Utils.line_sanitise(input)).to eq [
       "す", "<em>る</em>", "場", ""
     ]
   end
 
   it "applies namespace to xpath" do
     expect(Metanorma::Utils.ns("//ab/Bb/c1-d[ancestor::c][d = 'x'][e/f]"))
-      .to be_equivalent_to("//xmlns:ab/xmlns:Bb/xmlns:c1-d[ancestor::xmlns:c]" \
+      .to be_xml_equivalent_to("//xmlns:ab/xmlns:Bb/xmlns:c1-d[ancestor::xmlns:c]" \
                            "[xmlns:d = 'x'][xmlns:e/xmlns:f]")
   end
 
   it "converts HTML escapes to hex" do
     expect(Metanorma::Utils.numeric_escapes("A&eacute;B"))
-      .to be_equivalent_to "A&#xe9;B"
+      .to be_xml_equivalent_to "A&#xe9;B"
     expect(Metanorma::Utils.numeric_escapes("A<X>&eacute;</X>B"))
-      .to be_equivalent_to "A<X>&#xe9;</X>B"
+      .to be_xml_equivalent_to "A<X>&#xe9;</X>B"
   end
 
   it "case transforms XML snippets" do
     expect(Metanorma::Utils
       .case_transform_xml("Title <span class='abc'>abc</span> title", :upcase))
-      .to be_equivalent_to 'TITLE <span class="abc">ABC</span> TITLE'
+      .to be_xml_equivalent_to 'TITLE <span class="abc">ABC</span> TITLE'
   end
 
   it "detects GUID anchors" do
@@ -135,9 +135,9 @@ RSpec.describe Metanorma::Utils do
     INPUT
     xml = Nokogiri::XML(input)
     expect(Metanorma::Utils.contenthash(xml.at("//a[1]")))
-      .to be_equivalent_to "_acf23073-0e6b-9e99-5285-032c2dd00d0c"
+      .to be_xml_equivalent_to "_acf23073-0e6b-9e99-5285-032c2dd00d0c"
     expect(Metanorma::Utils.contenthash(xml.at("//a[2]")))
-      .to be_equivalent_to "_49246c6e-cf2b-9326-e13f-e6d0cf905178"
+      .to be_xml_equivalent_to "_49246c6e-cf2b-9326-e13f-e6d0cf905178"
   end
 
   it "uses add_first_child" do
@@ -153,7 +153,7 @@ RSpec.describe Metanorma::Utils do
     xml.at("//b").add_first_child("<x>B</x>")
     xml.at("//c").add_first_child("<x>C</x>")
     expect(xml.root.to_xml)
-      .to be_equivalent_to <<~OUTPUT
+      .to be_xml_equivalent_to <<~OUTPUT
         <metanorma>
         <a><x>A</x></a>
         <b><x>B</x>C</b>

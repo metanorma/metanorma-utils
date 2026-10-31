@@ -59,7 +59,7 @@ RSpec.describe Metanorma::Utils do
       </container>
     INPUT
     Metanorma::Utils.endash_date(a)
-    expect(a.to_xml).to be_equivalent_to <<~OUTPUT
+    expect(a.to_xml).to be_xml_equivalent_to <<~OUTPUT
           <?xml version="1.0"?>
       <container><a>A&#x2013;B A&#x2013;B</a><b>A&#x2013;B</b></container>
     OUTPUT
@@ -71,11 +71,11 @@ RSpec.describe Metanorma::Utils do
     a = Metanorma::Utils.set_nested_value(a, ["X1"], 9)
     a = Metanorma::Utils.set_nested_value(a, ["X2"], [3])
     a = Metanorma::Utils.set_nested_value(a, ["X3"], { "a" => "b" })
-    expect(a).to be_equivalent_to({ "X" => "x", "X1" => 9, "X2" => [3],
+    expect(a).to eq({ "X" => "x", "X1" => 9, "X2" => [3],
                                     "X3" => { "a" => "b" } })
     a = Metanorma::Utils.set_nested_value(a, ["X2"], 4)
     a = Metanorma::Utils.set_nested_value(a, ["X1"], 4)
-    expect(a).to be_equivalent_to({ "X" => "x", "X1" => [9, 4], "X2" => [3, 4],
+    expect(a).to eq({ "X" => "x", "X1" => [9, 4], "X2" => [3, 4],
                                     "X3" => { "a" => "b" } })
     a = Metanorma::Utils.set_nested_value(a, ["X2", "A"], 5)
     a = Metanorma::Utils.set_nested_value(a, ["X2a"], [])
@@ -85,7 +85,7 @@ RSpec.describe Metanorma::Utils do
     a = Metanorma::Utils.set_nested_value(a, ["X3", "a"], 8)
     a = Metanorma::Utils.set_nested_value(a, ["X1", "a"], 11)
     a = Metanorma::Utils.set_nested_value(a, ["X", "a"], 12)
-    expect(a).to be_equivalent_to({ "X" => ["x", { "a" => 12 }],
+    expect(a).to eq({ "X" => ["x", { "a" => 12 }],
                                     "X1" => [9, 4, { "a" => 11 }],
                                     "X2" => [3, 4, { "A" => 5 }],
                                     "X3" => { "a" => ["b", 8], "A" => 7 },
@@ -122,7 +122,7 @@ RSpec.describe Metanorma::Utils do
     INPUT
     Metanorma::Utils.dl_to_attrs(xml.at("//dummy"), xml.at("//dl"), "attr1")
     Metanorma::Utils.dl_to_attrs(xml.at("//dummy"), xml.at("//dl"), "attr2")
-    expect(xml.to_xml).to be_equivalent_to <<~OUTPUT
+    expect(xml.to_xml).to be_xml_equivalent_to <<~OUTPUT
       <xml>
        <dummy attr1="value1" attr2="value1"/>
        <dl>
@@ -144,7 +144,7 @@ RSpec.describe Metanorma::Utils do
     INPUT
     Metanorma::Utils.dl_to_attrs(xml.at("//dummy"), xml.at("//dl"), "attr1")
     Metanorma::Utils.dl_to_attrs(xml.at("//dummy"), xml.at("//dl"), "attr2")
-    expect(xml.to_xml).to be_equivalent_to <<~OUTPUT
+    expect(xml.to_xml).to be_xml_equivalent_to <<~OUTPUT
       <xml>
        <dummy attr1="value1" attr2="value1"/>
        <dl>
@@ -174,7 +174,7 @@ RSpec.describe Metanorma::Utils do
                                  xml.at("//dl"), "attr1")
     Metanorma::Utils.dl_to_elems(xml.at("//dummy1"), xml.at("//dummy"),
                                  xml.at("//dl"), "attr2")
-    expect(xml.to_xml).to be_equivalent_to <<~OUTPUT
+    expect(xml.to_xml).to be_xml_equivalent_to <<~OUTPUT
       <xml>
        <dummy>
          <attr2>A</attr2>
@@ -192,7 +192,7 @@ RSpec.describe Metanorma::Utils do
 
   it "processes XML attributes" do
     ret = Metanorma::Utils.attr_code({ a: 1, b: "&#x65;", c: nil })
-    expect(ret).to be_equivalent_to({ a: 1, b: "e" })
+    expect(ret).to eq({ a: 1, b: "e" })
   end
 
   it "breaks up long strings" do
