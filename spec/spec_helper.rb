@@ -27,6 +27,10 @@ module Metanorma
 
       def wrap(value)
         return value unless value.is_a?(String)
+        # XML declarations are legal only at document start; a fragment
+        # carrying one blows up the strict wrap parse. Declarations carry
+        # no comparison semantics (mirrors isodoc#876).
+        value = value.gsub(/<\?xml[^>]*\?>\s*/, "")
         return value if value.include?(ROOT)
         wrapped = "<#{ROOT}>#{value}</#{ROOT}>"
         begin
