@@ -13,7 +13,7 @@ module Metanorma
         @c = HTMLEntities.new
         @mapid = {}
         @suppress_log = { severity: 4, category: [], error_ids: [],
-                          locations: [] }
+                          error_regexes: [], locations: [] }
         @msg = messages.each_value do |v|
           v[:error] = v[:error]
             .encode("UTF-8", invalid: :replace, undef: :replace)
@@ -49,6 +49,8 @@ module Metanorma
       def add(id, loc, display: true, params: [])
         m = add_prep(id) or return
         msg = create_entry(loc, m[:error], m[:severity], id, params)
+        return if suppressed_message?(msg[:error])
+
         @log[m[:category]] << msg
         loc = loc.nil? ? "" : "(#{current_location(loc)[0]}): "
         suppress_display?(m[:category], loc, msg, display) or
@@ -77,6 +79,13 @@ module Metanorma
           @suppress_log[:severity] <= @msg[id][:severity] ||
           @suppress_log[:category].include?(category) ||
           @suppress_log[:error_ids].include?(id.to_s)
+      end
+
+      # Message-text suppressions (`log-filter-error-regex`): drop entries
+      # whose interpolated message matches any pattern, without suppressing
+      # the other messages sharing the same code.
+      def suppressed_message?(text)
+        Array(@suppress_log[:error_regexes]).any? { |re| re.match?(text) }
       end
 
       def suppress_display?(category, _loc, _msg, display)

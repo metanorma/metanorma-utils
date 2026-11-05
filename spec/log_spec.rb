@@ -718,4 +718,32 @@ RSpec.describe Metanorma::Utils do
                                 "ERR20")
     expect(file).not_to include("ERR08", "ERR09")
   end
+
+  it "suppresses only messages matching error_regexes patterns" do
+    messages = {
+      "FLAVOR_60": { error: "%s", severity: 2, category: "Style" },
+    }
+    log = Metanorma::Utils::Log.new(messages)
+    log.suppress_log[:error_regexes] = [/decimal point/, /SI unit/]
+
+    log.add("FLAVOR_60", nil, params: ["possible decimal point: 2.0"])
+    log.add("FLAVOR_60", nil,
+            params: ["no space between number and SI unit: 2u"])
+    log.add("FLAVOR_60", nil, params: ["unrelated style warning"])
+
+    expect(log.messages.map { |e| e[:error] })
+      .to eq ["unrelated style warning"]
+  end
+
+  it "logs all messages when error_regexes is empty" do
+    messages = {
+      "FLAVOR_60": { error: "%s", severity: 2, category: "Style" },
+    }
+    log = Metanorma::Utils::Log.new(messages)
+
+    log.add("FLAVOR_60", nil, params: ["possible decimal point: 2.0"])
+
+    expect(log.messages.map { |e| e[:error] })
+      .to eq ["possible decimal point: 2.0"]
+  end
 end
