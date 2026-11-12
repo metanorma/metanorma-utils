@@ -746,4 +746,112 @@ RSpec.describe Metanorma::Utils do
     expect(log.messages.map { |e| e[:error] })
       .to eq ["possible decimal point: 2.0"]
   end
+
+  describe "declarative suppression hook" do
+    # Real stub for the suppression object contract: answers action_for
+    # with a canned result for selected ids.
+    class SuppressionStub
+      def initialize(actions)
+        @actions = actions
+      end
+
+      def action_for(id:, **)
+        @actions[id.to_s]
+      end
+    end
+
+    let(:messages) do
+      {
+        "FLAVOR_3": { error: "Fatal one", severity: 0, category: "Cat A" },
+        "FLAVOR_5": { error: "Style one", severity: 2, category: "Cat B" },
+        "FLAVOR_7": { error: "Other one", severity: 1, category: "Cat B" },
+      }
+    end
+
+    it ":off drops the entry from the active log and records it" do
+      log = Metanorma::Utils::Log.new(messages)
+      log.suppression = SuppressionStub.new(
+        "FLAVOR_5" => { action: :off, reason: "house style waived" },
+      )
+      log.add("FLAVOR_5", nil)
+      log.add("FLAVOR_7", nil)
+
+      expect(log.messages.map { |e| e[:error_id] }).to eq ["FLAVOR_7"]
+      expect(log.suppressed?).to be true
+      expect(log.suppressed_messages).to eq [
+        { error_id: "FLAVOR_5", location: "", severity: 2,
+          error: "Style one", context: "", line: "000000", anchor: nil,
+          id: nil, suppressed_by: "house style waived",
+          original_severity: 2 },
+      ]
+    end
+
+    it "a severity-0 entry suppressed by :off never aborts" do
+      log = Metanorma::Utils::Log.new(messages)
+      log.suppression = SuppressionStub.new(
+        "FLAVOR_3" => { action: :off, reason: "not applicable here" },
+      )
+      log.add("FLAVOR_3", nil)
+
+      expect(log.abort_messages).to eq []
+      expect(log.messages).to eq []
+      expect(log.suppressed_messages.map { |e| e[:error_id] })
+        .to eq ["FLAVOR_3"]
+    end
+
+    it ":reclassify downgrades a severity-0 entry so it does not abort" do
+      log = Metanorma::Utils::Log.new(messages)
+      log.suppression = SuppressionStub.new(
+        "FLAVOR_3" => { action: :reclassify, reason: "downgraded",
+                        severity: 3 },
+      )
+      expect { log.add("FLAVOR_3", nil) }
+        .to output("Cat A: Fatal one\n").to_stderr
+
+      expect(log.abort_messages).to eq []
+      expect(log.messages).to eq [
+        { error_id: "FLAVOR_3", location: "", severity: 3,
+          error: "Fatal one", context: "", line: "000000", anchor: nil,
+          id: nil },
+      ]
+    end
+
+    it ":exclude drops the entry recording the matched reason" do
+      log = Metanorma::Utils::Log.new(messages)
+      log.suppression = SuppressionStub.new(
+        "FLAVOR_7" => { action: :exclude, reason: "pattern matched" },
+      )
+      log.add("FLAVOR_7", nil)
+      log.add("FLAVOR_5", nil)
+
+      expect(log.messages.map { |e| e[:error_id] }).to eq ["FLAVOR_5"]
+      expect(log.suppressed_messages).to eq [
+        { error_id: "FLAVOR_7", location: "", severity: 1,
+          error: "Other one", context: "", line: "000000", anchor: nil,
+          id: nil, suppressed_by: "pattern matched", original_severity: 1 },
+      ]
+    end
+
+    it "without suppression, behavior is unchanged" do
+      log = Metanorma::Utils::Log.new(messages)
+      log.add("FLAVOR_3", nil)
+      log.add("FLAVOR_5", nil)
+
+      expect(log.suppression).to be_nil
+      expect(log.suppressed?).to be false
+      expect(log.suppressed_messages).to eq []
+      expect(log.abort_messages).to eq ["Fatal one"]
+      expect(log.messages.map { |e| e[:error_id] })
+        .to eq %w(FLAVOR_3 FLAVOR_5)
+    end
+
+    it "nil and non-hash action_for results leave entries untouched" do
+      log = Metanorma::Utils::Log.new(messages)
+      log.suppression = SuppressionStub.new("FLAVOR_5" => nil)
+      log.add("FLAVOR_5", nil)
+
+      expect(log.messages.map { |e| e[:error_id] }).to eq ["FLAVOR_5"]
+      expect(log.suppressed_messages).to eq []
+    end
+  end
 end

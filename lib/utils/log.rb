@@ -4,12 +4,20 @@ require_relative "log_html"
 module Metanorma
   module Utils
     class Log
-      attr_accessor :suppress_log
+      attr_accessor :suppress_log, :suppression
 
       # messages: hash of message IDs to {error, severity, category}
       # severity: 0: abort; 1: serious; 2: not serious; 3: info only
+      #
+      # suppression: optional object answering
+      #   action_for(id:, message:, category:, severity:, location:)
+      # returning nil or { action: :off | :reclassify | :exclude,
+      # reason: String, severity: Integer } (severity for :reclassify).
+      # Declarative validation suppression, metanorma-standoc#1369.
       def initialize(messages = {})
         @log = {}
+        @suppressed_messages = []
+        @suppression = nil
         @c = HTMLEntities.new
         @mapid = {}
         @suppress_log = { severity: 4, category: [], error_ids: [],
@@ -51,10 +59,47 @@ module Metanorma
         msg = create_entry(loc, m[:error], m[:severity], id, params)
         return if suppressed_message?(msg[:error])
 
+        # ::Hash: Metanorma::Utils::Hash shadows the core constant here
+        case (action = suppression_action(msg, m, id, loc))
+        when ::Hash
+          case action[:action]
+          when :off, :exclude
+            record_suppressed(msg, action)
+            return
+          when :reclassify
+            # Reclassification precedes every severity-based decision, so a
+            # severity-0 (abort) entry reclassified away never aborts, and
+            # the active log carries the configured severity.
+            msg[:severity] = action[:severity]
+          end
+        end
+
         @log[m[:category]] << msg
         loc = loc.nil? ? "" : "(#{current_location(loc)[0]}): "
         suppress_display?(m[:category], loc, msg, display) or
           warn "#{m[:category]}: #{loc}#{msg[:error]}"
+      end
+
+      # Entries suppressed by the suppression hook: normal message shape,
+      # plus the suppression reason and the severity before suppression.
+      # The store is per-instance, like @log.
+      attr_reader :suppressed_messages
+
+      def suppressed?
+        !@suppressed_messages.empty?
+      end
+
+      # internal, but left public: this class has no private surface and
+      # flavors re-open it
+      def suppression_action(msg, m, id, loc)
+        @suppression&.action_for(id: id.to_s, message: msg[:error],
+                                 category: m[:category],
+                                 severity: msg[:severity], location: loc)
+      end
+
+      def record_suppressed(msg, action)
+        @suppressed_messages << msg.merge(suppressed_by: action[:reason],
+                                          original_severity: msg[:severity])
       end
 
       def abort_messages
