@@ -832,6 +832,23 @@ RSpec.describe Metanorma::Utils do
       ]
     end
 
+    it ":allow routes the entry to the suppressed store, audited" do
+      log = Metanorma::Utils::Log.new(messages)
+      log.suppression = SuppressionStub.new(
+        "FLAVOR_5" => { action: :allow, reason: "allowed by config: a PDF" },
+      )
+      log.add("FLAVOR_5", nil)
+      log.add("FLAVOR_7", nil)
+
+      expect(log.messages.map { |e| e[:error_id] }).to eq ["FLAVOR_7"]
+      expect(log.suppressed_messages).to eq [
+        { error_id: "FLAVOR_5", location: "", severity: 2,
+          error: "Style one", context: "", line: "000000", anchor: nil,
+          id: nil, suppressed_by: "allowed by config: a PDF",
+          original_severity: 2 },
+      ]
+    end
+
     it "without suppression, behavior is unchanged" do
       log = Metanorma::Utils::Log.new(messages)
       log.add("FLAVOR_3", nil)

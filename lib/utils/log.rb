@@ -11,9 +11,12 @@ module Metanorma
       #
       # suppression: optional object answering
       #   action_for(id:, message:, category:, severity:, location:)
-      # returning nil or { action: :off | :reclassify | :exclude,
+      # returning nil or { action: :off | :reclassify | :exclude | :allow,
       # reason: String, severity: Integer } (severity for :reclassify).
-      # Declarative validation suppression, metanorma-standoc#1369.
+      # :off, :exclude and :allow route to the suppressed store (audited,
+      # never silently dropped); :reclassify overrides the entry's
+      # severity before any severity-based decision. Declarative
+      # validation suppression, metanorma-standoc#1369.
       def initialize(messages = {})
         @log = {}
         @suppressed_messages = []
@@ -63,7 +66,7 @@ module Metanorma
         case (action = suppression_action(msg, m, id, loc))
         when ::Hash
           case action[:action]
-          when :off, :exclude
+          when :off, :exclude, :allow
             record_suppressed(msg, action)
             return
           when :reclassify
