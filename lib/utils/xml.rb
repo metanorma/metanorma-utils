@@ -52,7 +52,12 @@ module Metanorma
       # large compiles. Fragments off the shared document are
       # independent trees; conversion is single-threaded.
       def noko(_script = "Latn", &block)
-        fragment = noko_template.fragment("")
+        # DocumentFragment.new without input skips the per-call parse:
+        # fragment("") minted a ParseOptions and ran a parse pass on
+        # the empty string for every call (73k per plateau compile,
+        # 30% of this method's wall time, measured). The built
+        # serialization is byte-identical.
+        fragment = Nokogiri::XML::DocumentFragment.new(noko_template)
         ::Nokogiri::XML::Builder.with fragment, &block
         fragment
           .to_xml(encoding: "UTF-8", indent: 0,
@@ -88,8 +93,9 @@ module Metanorma
       def noko_html(&block)
         # Fragments off the shared template are independent trees, like in
         # #noko: duplicating the whole scaffold document per call buys
-        # nothing and copies every node of it.
-        fragment = noko_template.fragment("")
+        # nothing and copies every node of it. No-input new skips the
+        # per-call parse, as in #noko.
+        fragment = Nokogiri::XML::DocumentFragment.new(noko_template)
         ::Nokogiri::XML::Builder.with fragment, &block
         fragment.to_xml(encoding: "UTF-8", indent: 0,
                         save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
