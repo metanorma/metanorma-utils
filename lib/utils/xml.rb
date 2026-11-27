@@ -3,6 +3,7 @@ require "tempfile"
 require "uuidtools"
 require "htmlentities"
 require "nokogiri"
+require "moxml"
 
 module Nokogiri
   module XML

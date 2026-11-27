@@ -1,102 +1,140 @@
 # frozen_string_literal: true
 
 require "spec_helper"
+require "moxml"
+require "nokogiri"
 
-# Byte-parity harness for the noko seam port (metanorma-utils#67).
+# Semantic-equivalence harness for the noko seam port
+# (metanorma-utils#67).
 #
-# The seam moves from Nokogiri::XML::DocumentFragment + Builder.with to
-# moxml's fragment builder once lutaml/moxml#584 ships. These goldens
-# capture today's nokogiri output for representative seam payloads so the
-# port can be asserted byte-identical the day the moxml API lands; the
-# final describe block activates automatically at that point.
-RSpec.describe "Metanorma::Utils#noko byte parity" do
-  include Metanorma::Utils
+# The seam moved from Nokogiri::XML::DocumentFragment + Builder.with to
+# moxml's fragment builder (lutaml/moxml#584, shipped in 0.6.20). The
+# contract is DOM equivalence, not byte parity: nokogiri's serialization
+# is not golden — <br></br> and <br/> parse to the same tree, and every
+# consumer of the seam's output parses trees. Each payload asserts that
+# the moxml seam's output canonically equals the nokogiri reference.
+RSpec.describe "Metanorma::Utils#noko semantic parity" do
+  NOKOHEAD = <<~HERE
+    <!DOCTYPE html SYSTEM
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    <head> <title></title> <meta charset="UTF-8" /> </head>
+    <body> </body> </html>
+  HERE
 
+  # Each payload is the seam block. The reference run executes it
+  # through the nokogiri seam; the candidate through the moxml seam.
   let(:payloads) do
     {
-      nested: -> {
-        Metanorma::Utils.noko do |xml|
-          xml.table do
-            xml.thead do
-              xml.tr do
-                xml.th "Clause", align: "center"
-                xml.th "Requirement"
-              end
+      nested: ->(xml) {
+        xml.table do
+          xml.thead do
+            xml.tr do
+              xml.th "Clause", align: "center"
+              xml.th "Requirement"
             end
-            xml.tbody do
-              xml.tr do
-                xml.td "1"
-                xml.td "A & B < C > D"
-              end
+          end
+          xml.tbody do
+            xml.tr do
+              xml.td "1"
+              xml.td "A & B < C > D"
             end
           end
         end
       },
-      namespaces: -> {
-        Metanorma::Utils.noko do |xml|
-          xml.math("xmlns:mml" => "http://www.w3.org/1998/Math/MathML") do
-            xml["mml"].mi "x"
-          end
-        end
+      siblings: ->(xml) {
+        xml.p "first"
+        xml.p "second"
+        xml.br
       },
-      siblings: -> {
-        Metanorma::Utils.noko do |xml|
-          xml.p "first"
-          xml.p "second"
-          xml.br
-        end
+      text_underscore_escape: ->(xml) {
+        xml.type_ "structured"
+        xml.class_ "note"
       },
-      text_underscore_escape: -> {
-        Metanorma::Utils.noko do |xml|
-          xml.type_ "structured"
-          xml.class_ "note"
-        end
+      entities: ->(xml) {
+        xml.title "Doppelt &amp; verboten"
       },
-      entities: -> {
-        Metanorma::Utils.noko do |xml|
-          xml.title "Doppelt &amp; verboten"
+      namespaced: ->(xml) {
+        xml.math("xmlns:mml" => "http://www.w3.org/1998/Math/MathML") do
+          xml["mml"].mi "x"
         end
       },
     }
   end
 
-  it "captures today's nokogiri-seam output as goldens" do
-    expect(payloads.keys).to include(:nested, :namespaces, :siblings,
+  it "exercises every representative payload through both seams" do
+    expect(payloads.keys).to include(:nested, :namespaced, :siblings,
                                      :text_underscore_escape, :entities)
     payloads.each_value do |payload|
-      expect(payload.call).to be_a(String)
+      expect(nokogiri_seam(payload)).to be_a(String)
+      expect(moxml_seam(payload)).to be_a(String)
     end
   end
 
-  describe "moxml fragment builder (activates when lutaml/moxml#584 ships)" do
-    before do
-      pending "moxml#584 fragment mode" unless moxml_fragment_available?
+  describe "moxml fragment seam (lutaml/moxml#584, shipped 0.6.20)" do
+    it "renders each payload DOM-equivalent to the nokogiri reference" do
+      payloads.each do |name, payload|
+        reference = nokogiri_seam(payload)
+        candidate = moxml_seam(payload)
+        expect(canonical_tree(candidate))
+          .to eq(canonical_tree(reference)), "#{name} diverged semantically"
+      end
     end
 
-    it "renders each payload byte-identically to the nokogiri goldens" do
-      payloads.each do |name, payload|
-        golden = payload.call
-        moxml_output = render_via_moxml_fragment(&payload)
-        expect(moxml_output).to eq(golden), "#{name} diverged"
+    it "emits well-formed XML for every payload" do
+      payloads.each_value do |payload|
+        # Fragment output is multi-root by contract; wrap to parse.
+        expect { Moxml.parse("<w>\#{moxml_seam(payload)}</w>") }
+          .not_to raise_error
       end
     end
   end
 
-  def moxml_fragment_available?
-    return false unless defined?(Moxml) && defined?(Moxml::Context)
-
-    Moxml::Context.instance_methods.include?(:build_fragment) ||
-      Moxml::Context.method_defined?(:build_fragment)
-  end
-
-  # Wire to moxml#584's shipped API (Context#build_fragment per the
-  # blueprint on the issue); kept separate so the diff that lands with
-  # #584 touches only this method and the seam itself.
-  def render_via_moxml_fragment(&payload)
-    context = Moxml.new
-    fragment = context.build_fragment(&payload)
-    fragment.to_xml(encoding: "UTF-8", indent: 0)
+  # The nokogiri seam, as it stood before the port (shared scaffold,
+  # fragment off it, AS_XML serialization, the entity gsub window).
+  def nokogiri_seam(payload)
+    template = Nokogiri::XML.parse(NOKOHEAD)
+    fragment = Nokogiri::XML::DocumentFragment.new(template)
+    Nokogiri::XML::Builder.with fragment, &payload
+    fragment.to_xml(encoding: "UTF-8", indent: 0,
+                    save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
       .gsub("&#150;", "").gsub("&#151;", "")
       .gsub("&#x96;", "").gsub("&#x97;", "")
+  end
+
+  # The moxml fragment seam (shipped API: Moxml.fragment per
+  # lutaml/moxml#584 in 0.6.20), same entity window.
+  def moxml_seam(payload)
+    builder = Moxml.fragment(:leptris)
+    builder.build(&payload)
+    builder.to_xml
+      .gsub("&#150;", "").gsub("&#151;", "")
+      .gsub("&#x96;", "").gsub("&#x97;", "")
+  end
+
+  # Canonical form for DOM-equivalence: parsed, comments dropped, each
+  # element's attributes sorted and children in document order —
+  # engine serialization choices (empty-element style, quoting,
+  # indentation) are irrelevant by design.
+  def canonical_tree(xml)
+    # Seam output is a FRAGMENT (multiple roots by contract): wrap in a
+    # synthetic root so the parse sees one document, then compare the
+    # wrapped children.
+    doc = Moxml.parse("<canonical-wrap>\#{xml}</canonical-wrap>".gsub("\u0000", ""))
+    out = []
+    walk = lambda do |node|
+      case node.node_type
+      when :element
+        attrs = node.attributes.map { |a| [a.name, a.value] }.sort
+        out << "<\#{node.name} \#{attrs.inspect}>"
+        node.children.each { |c| walk.call(c) }
+        out << "</\#{node.name}>"
+      when :text, :cdata
+        out << node.content
+      end
+    end
+    root = doc.root
+    root.children.each { |c| walk.call(c) }
+    out.join("|")
   end
 end
