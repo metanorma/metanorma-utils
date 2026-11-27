@@ -31,6 +31,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency "csv"
   spec.add_dependency "htmlentities", "~> 4.3.4"
   spec.add_dependency "logger"
+  spec.add_dependency "moxml"
+  # The residual nokogiri sites (to_xhtml_fragment, case_transform_xml,
+  # dl_to_attrs, add_first_child) migrate with the converter-stack
+  # boundary (#67); consumers pass nokogiri trees today.
   spec.add_dependency "nokogiri", ">= 1.11"
   spec.add_dependency "sterile", "~> 1.0.14"
   spec.add_dependency "uuidtools"
